@@ -24,7 +24,7 @@ module.exports = function (grunt) {
 				},
 				src: [
 					'Gruntfile.js',
-					'lib/**/*.js',
+					'app.js',
 					'models/**/*.js',
 					'routes/**/*.js'
 				]

@@ -20,6 +20,8 @@
     "blanket": "~1.1.6",
     "jshint": "~2.4.0",
     "grunt-contrib-jshint": "~0.8.0",
-    "grunt-mocha-test": "~0.8.1"
+    "grunt-mocha-test": "~0.8.1",
+    "should": "~2.1.1",
+    "supertest": "~0.8.2"
   }
 }
