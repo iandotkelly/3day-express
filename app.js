@@ -9,6 +9,7 @@ var express = require('express'),
 	routes = require('./routes'),
 	http = require('http'),
 	app = module.exports = express(),
+	customHeader = require('./lib/customheader-middleware'),
 	port = process.env['3DAY_PORT'] || 4000;
 
 // configure the application port
@@ -16,6 +17,9 @@ app.set('port', port);
 
 // set up the logger
 app.use(express.logger());
+
+// custom middleware to discourage access from non approved clients
+app.use(customHeader);
 
 // middleware to parse json encoded body
 app.use(express.json());

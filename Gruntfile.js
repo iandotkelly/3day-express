@@ -26,7 +26,8 @@ module.exports = function (grunt) {
 					'Gruntfile.js',
 					'app.js',
 					'models/**/*.js',
-					'routes/**/*.js'
+					'routes/**/*.js',
+					'lib/**/*.js'
 				]
 			},
 			// settings for tests - not much different
@@ -59,12 +60,9 @@ module.exports = function (grunt) {
 					// output (the quiet option does not suppress this)
 					captureFile: 'coverage.html'
 				},
-				src: ['test/**/*.js']
+				src: ['./**/*.js']
 			}
 		},
-
-
-		
 	});
 
 	// load the plugins required
