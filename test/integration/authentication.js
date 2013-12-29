@@ -10,7 +10,7 @@ var User = require('../../models').User;
 
 var app = require('../../app.js'); // this starts the server
 
-describe('With incorrect username or password', function () {
+describe('With incorrect username and password', function () {
 
 	describe('the users API', function () {
 
@@ -24,6 +24,48 @@ describe('With incorrect username or password', function () {
 	});
  
 });
+
+
+describe('With incorrect password', function () {
+
+
+	var testUser;
+
+	before(function (done) {
+		// create user
+		testUser = new User({
+			username: 'testapi',
+			password: 'genius'
+		});
+		testUser.save(function (err) {
+			if (err) {
+				throw err;
+			}
+			done();
+		});
+	});
+
+	after(function () {
+		testUser.remove(function (err) {
+			if (err) {
+				throw err;
+			}
+		});
+	});
+
+	describe('the users API', function () {
+
+		it('should return a 401', function (done) {
+			request(app)
+				.get('/api/users')
+				.set('3day-app', 'test')
+				.auth('testapi', 'cats')
+				.expect(401, done);
+		});
+	});
+ 
+});
+
 
 describe('With no api key', function () {
 

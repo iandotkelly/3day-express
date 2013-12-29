@@ -51,11 +51,8 @@ db = mongoose.connection;
 userSchema.pre('save', function (next) {
 	var user = this;
 
-	// update the created/updated
-	user.updated = new Date();
-	if (!user.created) {
-		user.created = user.updated;
-	}
+	// refresh the updated property
+	user.updated = Date.now;
 
 	if (!user.isModified('password')) {
 		return next();
