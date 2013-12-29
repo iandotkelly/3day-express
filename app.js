@@ -8,8 +8,10 @@
 var express = require('express'),
 	routes = require('./routes'),
 	http = require('http'),
+	passport = require('passport'),
 	app = module.exports = express(),
 	customHeader = require('./lib/customheader-middleware'),
+	authenticate = require('./lib/authenticate'),
 	port = process.env['3DAY_PORT'] || 4000;
 
 // configure the application port
@@ -20,6 +22,9 @@ app.use(express.logger());
 
 // custom middleware to discourage access from non approved clients
 app.use(customHeader);
+
+// authentication
+app.use(passport.initialize());
 
 // middleware to parse json encoded body
 app.use(express.json());
@@ -41,7 +46,9 @@ if (app.get('env') === 'development') {
 app.use('/public', express.static('public'));
 
 // the API
-app.post('/api/users', routes.users.create);
+app.post('/api/users', routes.users.create); // unauthenticated
+app.get('/api/users', authenticate(), routes.users.retrieve);
+
 
 /**
  * Start Server

@@ -60,7 +60,7 @@ module.exports = function (grunt) {
 					// output (the quiet option does not suppress this)
 					captureFile: 'coverage.html'
 				},
-				src: ['./**/*.js']
+				src: ['test/**/*.js']
 			}
 		},
 	});
