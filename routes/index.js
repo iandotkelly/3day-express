@@ -1,8 +1,12 @@
+/**
+ * @description Index of the basic routes
+ *
+ * @author: Ian Kelly
+ */
 
 'use strict';
 
-var users = require('./users');
-
 module.exports = {
-	users: users
+	users: require('./users'),
+	reports: require('./reports')
 };

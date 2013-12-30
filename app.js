@@ -48,7 +48,7 @@ app.use('/public', express.static('public'));
 // the API
 app.post('/api/users', routes.users.create); // unauthenticated
 app.get('/api/users', authenticate(), routes.users.retrieve);
-
+app.post('/api/reports', authenticate(), routes.reports.create);
 
 /**
  * Start Server
