@@ -4,7 +4,7 @@
 
 'use strict';
 
-var User = require('../../models/user'),
+var User = require('../../models').User,
 	should = require('should');
 
 describe('User', function () {

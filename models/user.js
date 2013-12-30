@@ -1,12 +1,11 @@
-
-'use strict';
-
 /**
  * @description Model for User
  *
  * @author Ian Kelly
  * @copyright Copyright (C) Ian Kelly
  */
+
+'use strict';
 
 	// using mongoose ODM
 var mongoose = require('mongoose'),
