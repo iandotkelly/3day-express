@@ -49,6 +49,9 @@ app.use('/public', express.static('public'));
 app.post('/api/users', routes.users.create); // unauthenticated
 app.get('/api/users', authenticate(), routes.users.retrieve);
 app.post('/api/reports', authenticate(), routes.reports.create);
+app.get('/api/reports/:skip/:number', authenticate(), routes.reports.retrieve);
+app.get('/api/reports/:number', authenticate(), routes.reports.retrieve);
+app.get('/api/reports', authenticate(), routes.reports.retrieve);
 
 /**
  * Start Server

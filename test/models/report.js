@@ -33,6 +33,7 @@ describe('Report', function () {
 
 	});
 
+
 	describe('#save() with a userid', function () {
 
 		var report;
@@ -65,4 +66,122 @@ describe('Report', function () {
 			});
 		});
 	});
+
+
+	describe('find()', function () {
+
+		var report1,
+			report2,
+			report3,
+			fakeUserId = mongoose.Types.ObjectId();
+
+		before(function (done) {
+			report1 = new Report({userid: fakeUserId, date: new Date('June 31, 2012')});
+			report2 = new Report({userid: fakeUserId, date: new Date('July 15, 2012')});
+			report3 = new Report({userid: fakeUserId, date: new Date('July 4, 2012')});
+			report1.save(function (err) {
+				if (err) {
+					throw err;
+				}
+				report2.save(function (err) {
+					if (err) {
+						throw err;
+					}
+					report3.save(function (err) {
+						if (err) {
+							throw err;
+						}
+						done();
+					});
+				});
+			});
+		});
+
+		after(function (done) {
+			report1.remove(function (err) {
+				if (err) {
+					throw err;
+				}
+				report2.remove(function (err) {
+					if (err) {
+						throw err;
+					}
+					report3.remove(function (err) {
+						if (err) {
+							throw err;
+						}
+						done();
+					});
+				});
+			});
+		});
+
+		describe('with just a username filter', function () {
+
+			it('should return all 3 reports', function (done) {
+
+				Report.find({userid: fakeUserId}, function (err, reports) {
+					reports.length.should.equal(3);
+					done();
+				});
+
+			});
+
+		});
+
+
+		describe('with a username filter and a skip and limit of 1',
+			function () {
+
+				it('should return the middle report in db order', function (done) {
+
+					Report.find(
+						{
+							userid: fakeUserId
+						}, null,
+						{
+							skip: 1,
+							limit: 1
+						},
+						function (err, reports) {
+							reports.length.should.equal(1);
+							// should return the middle report as added to mongo
+							reports[0].date.getTime().should.equal((new Date('July 15, 2012')).getTime());
+							done();
+						});
+				});
+
+			});
+
+
+
+		describe('with a username filter and a skip and limit of 1 and in reverse date order',
+			function () {
+
+				it('should return the middle report in date order', function (done) {
+
+					Report.find(
+						{
+							userid: fakeUserId
+						},
+						null,
+						{
+							skip: 1,
+							limit: 1,
+							sort: {
+								date: -1
+							}
+						},
+						function (err, reports) {
+							reports.length.should.equal(1);
+							// should return the middle report in date order
+							reports[0].date.getTime().should.equal((new Date('July 4, 2012')).getTime());
+							done();
+						});
+				});
+
+			});
+	});
+
+
 });
