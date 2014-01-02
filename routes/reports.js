@@ -6,6 +6,7 @@
 'use strict';
 
 var Report = require('../models').Report;
+var httpStatus = require('http-status');
 
 var errorResponse = {
 	status: 'failed',
@@ -21,7 +22,7 @@ function create(req, res, next) {
 		report;
 
 	if (!body || !body.date || !body.categories) {
-		return res.send(400, errorResponse);
+		return res.send(httpStatus.BAD_REQUEST, errorResponse);
 	}
 
 	report = new Report({
@@ -34,7 +35,7 @@ function create(req, res, next) {
 		if (err) {
 			return next(err);
 		}
-		res.send(201);
+		res.send(httpStatus.CREATED);
 	});
 }
 
@@ -62,7 +63,7 @@ function retrieve(req, res, next) {
 			if (err) {
 				return next(err);
 			}
-			res.send(200, reports);
+			res.send(httpStatus.OK, reports);
 		});
 }
 
