@@ -45,8 +45,28 @@ if (app.get('env') === 'development') {
 // public resources - we may want a simple file server
 app.use('/public', express.static('public'));
 
+// user creation and update
+app.post('/api/users', function (req, res, next) {
+	// client passing authorization header - update request
+	if (req.headers.authorization) {
+		return passport.authenticate('basic', function (err, user) {
+			if (err) {
+				return next(err);
+			}
+			if (user) {
+				req.user = user;
+				return routes.users.update(req, res, next);
+			}
+			// not authorized
+			res.send(401);
+		})(req, res, next);
+	}
+
+	// unauthenticated - create request
+	routes.users.create(req, res, next);
+});
+
 // the API
-app.post('/api/users', routes.users.create); // unauthenticated
 app.get('/api/users', authenticate(), routes.users.retrieve);
 app.post('/api/reports', authenticate(), routes.reports.create);
 app.get('/api/reports/:skip/:number', authenticate(), routes.reports.retrieve);

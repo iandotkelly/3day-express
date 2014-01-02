@@ -53,20 +53,28 @@ describe('User', function () {
 
 		var user;
 
-		before(function () {
-			user = new User(
-				{
-					username: 'testname',
-					password: 'cats',
+		before(function (done) {
+			User.remove({username: 'testname'}, function (err) {
+				if (err) {
+					throw err;
 				}
-			);
+				user = new User(
+					{
+						username: 'testname',
+						password: 'cats',
+					}
+				);
+				done();
+			});
+
 		});
 
-		after(function () {
+		after(function (done) {
 			user.remove(function (err) {
 				if (err) {
 					throw err;
 				}
+				done();
 			});
 		});
 
