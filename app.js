@@ -12,7 +12,7 @@ var express = require('express'),
 	app = module.exports = express(),
 	customHeader = require('./lib/customheader-middleware'),
 	authenticate = require('./lib/authenticate'),
-	port = process.env['3DAY_PORT'] || 4000;
+	port = process.env['THREEDAY_PORT'] || 4000;
 
 // configure the application port
 app.set('port', port);
