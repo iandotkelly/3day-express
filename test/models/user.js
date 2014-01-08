@@ -126,12 +126,18 @@ describe('User', function () {
 					password: 'genius'
 				}
 			);
-			madeUser.save(function (err) {
+			User.remove({username: 'iandotkelly'}, function (err) {
 				if (err) {
 					throw err;
 				}
-				done();
+				madeUser.save(function (err) {
+					if (err) {
+						throw err;
+					}
+					done();
+				});
 			});
+
 		});
 
 		after(function () {

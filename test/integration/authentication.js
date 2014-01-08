@@ -1,5 +1,5 @@
 /**
- * @description Test for the 
+ * @description Test for the
  */
 
 'use strict';
@@ -21,13 +21,25 @@ describe('With incorrect username and password', function () {
 				.auth('incorrect', 'credentials')
 				.expect(401, done);
 		});
+
+		it('should issue an authentication challenge', function (done) {
+			request(app)
+				.get('/api/users')
+				.set('3day-app', 'test')
+				.auth('incorrect', 'credentials')
+				.end(function (err, response) {
+					should(err).not.exit;
+					var header = response.header['www-authenticate'];
+					header.should.be.equal('Basic realm="api"');
+					done();
+				});
+		});
 	});
- 
+
 });
 
 
 describe('With incorrect password', function () {
-
 
 	var testUser;
 
@@ -62,8 +74,21 @@ describe('With incorrect password', function () {
 				.auth('testapi', 'cats')
 				.expect(401, done);
 		});
+
+
+		it('should issue an authentication challenge', function (done) {
+			request(app)
+				.get('/api/users')
+				.set('3day-app', 'test')
+				.auth('incorrect', 'credentials')
+				.end(function (err, response) {
+					should(err).not.exit;
+					var header = response.header['www-authenticate'];
+					header.should.be.equal('Basic realm="api"');
+					done();
+				});
+		});
 	});
- 
 });
 
 
@@ -96,6 +121,18 @@ describe('With no api key', function () {
 				.expect(401, done);
 		});
 
+		it('should issue an authentication challenge', function (done) {
+			request(app)
+				.get('/api/users')
+				.set('3day-app', 'test')
+				.auth('incorrect', 'credentials')
+				.end(function (err, response) {
+					should(err).not.exit;
+					var header = response.header['www-authenticate'];
+					header.should.be.equal('Basic realm="api"');
+					done();
+				});
+		});
 	});
 });
 

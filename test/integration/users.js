@@ -239,9 +239,6 @@ describe('POST /api/users', function () {
 			});
 		});
 
-
-
-
 		describe('with wrong authentication', function () {
 
 			it('should return a 401', function (done) {
@@ -252,8 +249,22 @@ describe('POST /api/users', function () {
 					.send({username: 'updatedusername', password: 'fred'})
 					.expect(401, done);
 			});
-		});
 
+			it('should return a response with WWW-Authenticate header', function (done) {
+				request(app)
+					.post('/api/users')
+					.auth('updateuser', 'catz')
+					.set('3day-app', 'test')
+					.send({username: 'updatedusername', password: 'fred'})
+					.end(function (err, res) {
+						should(err).not.exist;
+						var header = res.headers['www-authenticate'];
+						header.should.be.a.string;
+						header.should.be.equal('Basic realm="api"');
+						done();
+					});
+			});
+		});
 
 		describe('with both username and password', function () {
 
