@@ -1,16 +1,16 @@
 /**
  * @description Route to handle operations on the /users resource
- * 
+ *
  */
 
 'use strict';
 
 var User = require('../models').User;
 var httpStatus = require('http-status');
+var reasonCodes = require('../lib/constants').reasonCodes;
 
-// 'constants'
-var REASON_NOT_UNIQUE = 100;
-var REASON_BAD_SYNTAX = 500;
+console.log('******');
+console.log(reasonCodes);
 
 /**
  * Route for POST /api/users - Authenticated
@@ -24,8 +24,7 @@ function update(req, res, next) {
 	// or an updated password
 	if (!body || (!body.username && !body.password)) {
 		return res.send(httpStatus.BAD_REQUEST, {
-			status: 'failed',
-			reason: REASON_BAD_SYNTAX,
+			reason: reasonCodes.BAD_SYNTAX,
 			message: 'Bad request'
 		});
 	}
@@ -40,9 +39,18 @@ function update(req, res, next) {
 
 	user.save(function (err) {
 		if (err) {
+			// look for a duplicate user
+			if (err.code && err.code === 11000) {
+				return res.send(httpStatus.BAD_REQUEST, {
+					reason: reasonCodes.USERNAME_NOT_UNIQUE,
+					message: 'Username not unique'
+				});
+			}
 			return next(err);
 		}
-		res.send(httpStatus.NO_CONTENT);
+		res.json(httpStatus.OK, {
+			message: 'Updated'
+		});
 	});
 }
 
@@ -57,8 +65,7 @@ function create(req, res) {
 	// do we have the appropriate parameters?
 	if (!body || !body.username || !body.password) {
 		return res.send(httpStatus.BAD_REQUEST, {
-			status: 'failed',
-			reason: REASON_BAD_SYNTAX,
+			reason: reasonCodes.BAD_SYNTAX,
 			message: 'Bad request'
 		});
 	}
@@ -73,13 +80,14 @@ function create(req, res) {
 			// look for a duplicate user
 			if (err.code && err.code === 11000) {
 				return res.send(httpStatus.BAD_REQUEST, {
-					status: 'failed',
-					reason: REASON_NOT_UNIQUE,
+					reason: reasonCodes.USERNAME_NOT_UNIQUE,
 					message: 'Username not unique'
 				});
 			}
 		} else {
-			res.send(httpStatus.CREATED);
+			res.send(httpStatus.CREATED, {
+				message: 'Created'
+			});
 		}
 	});
 }

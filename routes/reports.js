@@ -1,15 +1,16 @@
 /**
  * @description Route to handle operations on the /api/reports resource
- * 
+ *
  */
 
 'use strict';
 
 var Report = require('../models').Report;
 var httpStatus = require('http-status');
+var constants = require('../lib/constants');
 
 var errorResponse = {
-	status: 'failed',
+	reason: constants.BAD_SYNTAX,
 	message: 'Bad request'
 };
 
@@ -22,7 +23,7 @@ function create(req, res, next) {
 		report;
 
 	if (!body || !body.date || !body.categories) {
-		return res.send(httpStatus.BAD_REQUEST, errorResponse);
+		return res.json(httpStatus.BAD_REQUEST, errorResponse);
 	}
 
 	report = new Report({
@@ -35,7 +36,9 @@ function create(req, res, next) {
 		if (err) {
 			return next(err);
 		}
-		res.send(httpStatus.CREATED);
+		res.json(httpStatus.CREATED, {
+			message: 'Created'
+		});
 	});
 }
 

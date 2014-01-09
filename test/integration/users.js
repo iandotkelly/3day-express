@@ -30,9 +30,7 @@ describe('POST /api/users', function () {
 					.end(function (err, res) {
 						should(err).not.exist;
 						res.body.should.be.an.object;
-						res.body.status.should.be.equal('failed');
 						res.body.message.should.be.equal('Bad request');
-						res.body.reason.should.be.equal(500);
 						done();
 					});
 			});
@@ -56,10 +54,10 @@ describe('POST /api/users', function () {
 					.send({password: 'cats'})
 					.end(function (err, res) {
 						should(err).not.exist;
+						console.log(res.body);
 						res.body.should.be.an.object;
-						res.body.status.should.be.equal('failed');
 						res.body.message.should.be.equal('Bad request');
-						res.body.reason.should.be.equal(500);
+						res.body.reason.should.be.equal(10000);
 						done();
 					});
 			});
@@ -84,9 +82,8 @@ describe('POST /api/users', function () {
 					.end(function (err, res) {
 						should(err).not.exist;
 						res.body.should.be.an.object;
-						res.body.status.should.be.equal('failed');
 						res.body.message.should.be.equal('Bad request');
-						res.body.reason.should.be.equal(500);
+						res.body.reason.should.be.equal(10000);
 						done();
 					});
 			});
@@ -175,9 +172,8 @@ describe('POST /api/users', function () {
 					.end(function (err, res) {
 						should(err).not.exist;
 						res.body.should.be.an.object;
-						res.body.status.should.be.equal('failed');
 						res.body.message.should.be.equal('Username not unique');
-						res.body.reason.should.be.equal(100);
+						res.body.reason.should.be.equal(15000);
 						done();
 					});
 			});
@@ -231,9 +227,8 @@ describe('POST /api/users', function () {
 					.end(function (err, res) {
 						should(err).not.exist;
 						res.body.should.be.an.object;
-						res.body.status.should.be.equal('failed');
 						res.body.message.should.be.equal('Bad request');
-						res.body.reason.should.be.equal(500);
+						res.body.reason.should.be.equal(10000);
 						done();
 					});
 			});

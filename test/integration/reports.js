@@ -176,7 +176,6 @@ describe('The Reports API', function () {
 					.end(function (err, res) {
 						should(err).not.exist;
 						res.body.should.be.an.object;
-						res.body.status.should.be.equal('failed');
 						res.body.message.should.be.equal('Bad request');
 						done();
 					});
