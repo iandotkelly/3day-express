@@ -9,9 +9,6 @@ var User = require('../models').User;
 var httpStatus = require('http-status');
 var reasonCodes = require('../lib/constants').reasonCodes;
 
-console.log('******');
-console.log(reasonCodes);
-
 /**
  * Route for POST /api/users - Authenticated
  */

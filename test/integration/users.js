@@ -118,8 +118,10 @@ describe('POST /api/users', function () {
 					.post('/api/users')
 					.set('3day-app', 'test')
 					.send({username: 'integrationtest', password: 'cats'})
-					.end(function (err) {
+					.end(function (err, res) {
 						should(err).not.exist;
+						res.body.should.be.an.object;
+						res.body.message.should.equal('Created');
 						User.findOne({username: 'integrationtest'}, function (err, user) {
 							should(err).not.exist;
 							user.username.should.equal('integrationtest');
@@ -269,8 +271,10 @@ describe('POST /api/users', function () {
 					.auth('updateuser', 'cats')
 					.set('3day-app', 'test')
 					.send({username: 'updatedusername', password: 'fred'})
-					.end(function (err) {
+					.end(function (err, res) {
 						should(err).not.exist;
+						res.body.should.be.an.object;
+						res.body.message.should.be.equal('Updated');
 						User.findOne({username: 'updateuser'}, function (err, user) {
 							// we expect to not find this user
 							should(err).not.exist;
