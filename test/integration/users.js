@@ -54,7 +54,6 @@ describe('POST /api/users', function () {
 					.send({password: 'cats'})
 					.end(function (err, res) {
 						should(err).not.exist;
-						console.log(res.body);
 						res.body.should.be.an.object;
 						res.body.message.should.be.equal('Bad request');
 						res.body.reason.should.be.equal(10000);
@@ -184,20 +183,31 @@ describe('POST /api/users', function () {
 
 	describe('with an authorizaton header', function () {
 
-		var user;
+		var user, duplicateUser;
 
 		before(function (done) {
 			// we need a user
 			user = new User({username: 'updateuser', password: 'cats'});
+			duplicateUser = new User({username: 'duplicateuser', password: 'cats'});
 			User.remove({username: 'updateuser'}, function (err) {
 				if (err) {
 					throw err;
 				}
-				user.save(function (err) {
+				User.remove({username: 'duplicateuser'}, function (err) {
 					if (err) {
 						throw err;
 					}
-					done();
+					user.save(function (err) {
+						if (err) {
+							throw err;
+						}
+						duplicateUser.save(function (err) {
+							if (err) {
+								throw err;
+							}
+							done();
+						});
+					});
 				});
 			});
 		});
@@ -207,7 +217,12 @@ describe('POST /api/users', function () {
 				if (err) {
 					throw err;
 				}
-				done();
+				duplicateUser.remove(function (err) {
+					if (err) {
+						throw err;
+					}
+					done();
+				});
 			});
 		});
 
@@ -289,6 +304,25 @@ describe('POST /api/users', function () {
 								});
 							});
 						});
+					});
+			});
+		});
+
+
+		describe('renaming to a duplicate user', function () {
+
+			it('should return a 400 error', function (done) {
+				request(app)
+					.post('/api/users')
+					.auth('updatedusername', 'fred')
+					.set('3day-app', 'test')
+					.send({username: 'duplicateuser', password: 'fred'})
+					.end(function (err, res) {
+						should(err).not.exist;
+						res.body.should.be.an.object;
+						res.body.reason.should.be.equal(15000);
+						res.body.message.should.be.equal('Username not unique');
+						done();
 					});
 			});
 		});

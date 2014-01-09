@@ -37,7 +37,7 @@ function update(req, res, next) {
 	user.save(function (err) {
 		if (err) {
 			// look for a duplicate user
-			if (err.code && err.code === 11000) {
+			if (err.code && (err.code === 11001 || err.code === 11000)) {
 				return res.send(httpStatus.BAD_REQUEST, {
 					reason: reasonCodes.USERNAME_NOT_UNIQUE,
 					message: 'Username not unique'
