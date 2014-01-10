@@ -25,7 +25,7 @@ describe('The Reports API', function () {
 			}
 
 			// create a user for all the tests
-			user = new User({ username: 'reportsintegration', password: 'cats' });
+			user = new User({ username: 'reportsintegration', password: 'catsss' });
 			user.save(function (err) {
 				if (err) {
 					throw err;
@@ -97,7 +97,7 @@ describe('The Reports API', function () {
 				request(app)
 					.get('/api/reports')
 					.set('3day-app', 'test')
-					.auth('reportsintegration', 'cats')
+					.auth('reportsintegration', 'catsss')
 					.end(function (err, res) {
 						should(err).not.exist;
 						res.statusCode.should.be.equal(200);
@@ -117,7 +117,7 @@ describe('The Reports API', function () {
 				request(app)
 					.get('/api/reports/2')
 					.set('3day-app', 'test')
-					.auth('reportsintegration', 'cats')
+					.auth('reportsintegration', 'catsss')
 					.end(function (err, res) {
 						should(err).not.exist;
 						res.statusCode.should.be.equal(200);
@@ -140,7 +140,7 @@ describe('The Reports API', function () {
 				request(app)
 					.get('/api/reports/1/2')
 					.set('3day-app', 'test')
-					.auth('reportsintegration', 'cats')
+					.auth('reportsintegration', 'catsss')
 					.end(function (err, res) {
 						should(err).not.exist;
 						res.statusCode.should.be.equal(200);
@@ -165,7 +165,7 @@ describe('The Reports API', function () {
 				request(app)
 					.post('/api/reports')
 					.set('3day-app', 'test')
-					.auth('reportsintegration', 'cats')
+					.auth('reportsintegration', 'catsss')
 					.expect(400, done);
 			});
 
@@ -173,7 +173,7 @@ describe('The Reports API', function () {
 				request(app)
 					.post('/api/reports')
 					.set('3day-app', 'test')
-					.auth('reportsintegration', 'cats')
+					.auth('reportsintegration', 'catsss')
 					.end(function (err, res) {
 						should(err).not.exist;
 						res.body.should.be.an.object;
@@ -206,7 +206,7 @@ describe('The Reports API', function () {
 				request(app)
 					.post('/api/reports')
 					.set('3day-app', 'test')
-					.auth('reportsintegration', 'cats')
+					.auth('reportsintegration', 'catsss')
 					.send(report)
 					.expect(201, done);
 			});
@@ -229,7 +229,7 @@ describe('The Reports API', function () {
 				request(app)
 					.post('/api/reports/' + mongoose.Types.ObjectId())
 					.set('3day-app', 'test')
-					.auth('reportsintegration', 'cats')
+					.auth('reportsintegration', 'catsss')
 					.expect(400, done);
 			});
 		});
@@ -240,7 +240,7 @@ describe('The Reports API', function () {
 				request(app)
 					.post('/api/reports/' + mongoose.Types.ObjectId())
 					.set('3day-app', 'test')
-					.auth('reportsintegration', 'cats')
+					.auth('reportsintegration', 'catsss')
 					.send({
 						userid: user._id,
 						date: new Date(),
@@ -294,7 +294,7 @@ describe('The Reports API', function () {
 				request(app)
 					.post('/api/reports/' + report._id)
 					.set('3day-app', 'test')
-					.auth('reportsintegration', 'cats')
+					.auth('reportsintegration', 'catsss')
 					.send({
 						userid: user._id,
 						date: new Date(),
@@ -313,7 +313,7 @@ describe('The Reports API', function () {
 				request(app)
 					.post('/api/reports/' + report._id)
 					.set('3day-app', 'test')
-					.auth('reportsintegration', 'cats')
+					.auth('reportsintegration', 'catsss')
 					.send({
 						userid: user._id,
 						date: new Date(),
@@ -355,7 +355,7 @@ describe('The Reports API', function () {
 				request(app)
 					.del('/api/reports/' + mongoose.Types.ObjectId())
 					.set('3day-app', 'test')
-					.auth('reportsintegration', 'cats')
+					.auth('reportsintegration', 'catsss')
 					.expect(404, done);
 			});
 
@@ -364,7 +364,7 @@ describe('The Reports API', function () {
 				request(app)
 					.del('/api/reports/' + mongoose.Types.ObjectId())
 					.set('3day-app', 'test')
-					.auth('reportsintegration', 'cats')
+					.auth('reportsintegration', 'catsss')
 					.end(function (err, res) {
 						should(err).not.exist;
 						res.body.should.be.an.object;
@@ -403,7 +403,7 @@ describe('The Reports API', function () {
 				request(app)
 					.del('/api/reports/' + report._id)
 					.set('3day-app', 'test')
-					.auth('reportsintegration', 'cats')
+					.auth('reportsintegration', 'catsss')
 					.expect(200, done);
 			});
 
@@ -412,7 +412,7 @@ describe('The Reports API', function () {
 				request(app)
 					.del('/api/reports/' + report._id)
 					.set('3day-app', 'test')
-					.auth('reportsintegration', 'cats')
+					.auth('reportsintegration', 'catsss')
 					.end(function (err, res) {
 						should(err).not.exist;
 						res.body.should.be.an.object;

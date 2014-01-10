@@ -23,7 +23,7 @@ describe('User', function () {
 	describe('#save() with missing username', function () {
 
 		it('should return an error', function (done) {
-			var user = new User({ password: 'cats' });
+			var user = new User({ password: 'catsss' });
 			user.save(function (err) {
 				err.should.be.an.object;
 				err.name.should.be.equal('ValidationError');
@@ -49,6 +49,44 @@ describe('User', function () {
 		});
 	});
 
+	describe('#save() with an invalid username', function () {
+
+		it('should return an error', function (done) {
+			var user = new User(
+				{
+					username: 'hi',
+					password: 'ThisIsAGoodOne3!'
+				}
+			);
+			user.save(function (err) {
+				err.should.be.an.object;
+				err.name.should.be.equal('ValidationError');
+				err.errors.username.message.should.be.equal('15001');
+				done();
+			});
+		});
+	});
+
+
+	describe('#save() with an invalid password', function () {
+
+		it('should return an error', function (done) {
+			var user = new User(
+				{
+					username: 'iandotkelly',
+					password: '   '
+				}
+			);
+			user.save(function (err) {
+				console.log(err);
+				err.should.be.an.object;
+				err.name.should.be.equal('ValidationError');
+				err.errors.password.message.should.be.equal('15002');
+				done();
+			});
+		});
+	});
+
 	describe('with good required parameters', function () {
 
 		var user;
@@ -61,7 +99,7 @@ describe('User', function () {
 				user = new User(
 					{
 						username: 'testname',
-						password: 'cats',
+						password: 'catsss',
 					}
 				);
 				done();
@@ -96,7 +134,7 @@ describe('User', function () {
 		describe('#validatePassword()', function () {
 
 			it('should not match with the wrong password', function (done) {
-				user.validatePassword('dogs', function (err, isMatch) {
+				user.validatePassword('dogsss', function (err, isMatch) {
 					should(err).not.Error;
 					isMatch.should.be.false;
 					done();
@@ -104,7 +142,7 @@ describe('User', function () {
 			});
 
 			it('should match with the correct password', function (done) {
-				user.validatePassword('cats', function (err, isMatch) {
+				user.validatePassword('catsss', function (err, isMatch) {
 					should(err).not.Error;
 					isMatch.should.be.true;
 					done();
@@ -149,7 +187,7 @@ describe('User', function () {
 		});
 
 		it('should not find a record with an unknown username', function (done) {
-			User.findOne({email: 'cats'}, function (err, user) {
+			User.findOne({username: 'cats'}, function (err, user) {
 				should(err).not.Error;
 				should(user).not.ok;
 				done();

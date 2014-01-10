@@ -9,6 +9,44 @@ var User = require('../models').User;
 var httpStatus = require('http-status');
 var reasonCodes = require('../lib/constants').reasonCodes;
 
+
+/**
+ * Processes a Save Error
+ *
+ * @param  {Error} err  An error returned from Mongoose
+ * @return {Object}     The message to return by the API, or Undefined if none
+ */
+function processSaveError(err) {
+
+	// duplicate username
+	if (err.code && (err.code === 11000 || err.code === 11001)) {
+		return {
+			reason: reasonCodes.USERNAME_NOT_UNIQUE,
+			message: 'Username not unique'
+		};
+	}
+
+	// its a schema validation message
+	if (err.name && err.name === 'ValidationError') {
+		// if it relates to the username
+		if (err.errors && err.errors.username) {
+			return {
+				reason: reasonCodes.USERNAME_INVALID,
+				message: 'Username does not meet minimum standards'
+			};
+		}
+		// if it relates to the password
+		if (err.errors && err.errors.password) {
+			return {
+				reason: reasonCodes.PASSWORD_INVALID,
+				message: 'Password does not meet minimum standards'
+			};
+		}
+	}
+
+	// else we will return falsey
+}
+
 /**
  * Route for POST /api/users - Authenticated
  */
@@ -35,15 +73,21 @@ function update(req, res, next) {
 	}
 
 	user.save(function (err) {
+
+		var saveError;
+
 		if (err) {
-			// look for a duplicate user
-			if (err.code && (err.code === 11001 || err.code === 11000)) {
-				return res.send(httpStatus.BAD_REQUEST, {
-					reason: reasonCodes.USERNAME_NOT_UNIQUE,
-					message: 'Username not unique'
-				});
+
+			// if its a known validation error then return a
+			// a bad request
+			saveError = processSaveError(err);
+			if (saveError) {
+				return res.send(httpStatus.BAD_REQUEST, saveError);
 			}
+
+			// ok - this is a genuine exception - return a 500
 			return next(err);
+
 		}
 		res.json(httpStatus.OK, {
 			message: 'Updated'
@@ -54,7 +98,7 @@ function update(req, res, next) {
 /**
  * Route for POST /api/users - Not Authenticated
  */
-function create(req, res) {
+function create(req, res, next) {
 
 	var body = req.body,
 		user;
@@ -73,14 +117,21 @@ function create(req, res) {
 	});
 
 	user.save(function (err) {
+
+		var saveError;
+
 		if (err) {
-			// look for a duplicate user
-			if (err.code && err.code === 11000) {
-				return res.send(httpStatus.BAD_REQUEST, {
-					reason: reasonCodes.USERNAME_NOT_UNIQUE,
-					message: 'Username not unique'
-				});
+
+			// if its a known validation error then return a
+			// a bad request
+			saveError = processSaveError(err);
+			if (saveError) {
+				return res.send(httpStatus.BAD_REQUEST, saveError);
 			}
+
+			// ok - this is a genuine exception - return a 500
+			return next(err);
+
 		} else {
 			res.send(httpStatus.CREATED, {
 				message: 'Created'

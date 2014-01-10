@@ -36,14 +36,13 @@ describe('POST /api/users', function () {
 			});
 		});
 
-
 		describe('With no username', function () {
 
 			it('should return a 400', function (done) {
 				request(app)
 					.post('/api/users')
 					.set('3day-app', 'test')
-					.send({password: 'cats'})
+					.send({password: 'catsss'})
 					.expect(400, done);
 			});
 
@@ -51,7 +50,7 @@ describe('POST /api/users', function () {
 				request(app)
 					.post('/api/users')
 					.set('3day-app', 'test')
-					.send({password: 'cats'})
+					.send({password: 'catsss'})
 					.end(function (err, res) {
 						should(err).not.exist;
 						res.body.should.be.an.object;
@@ -69,7 +68,7 @@ describe('POST /api/users', function () {
 				request(app)
 					.post('/api/users')
 					.set('3day-app', 'test')
-					.send({username: 'ian'})
+					.send({username: 'iandotkelly'})
 					.expect(400, done);
 			});
 
@@ -77,12 +76,64 @@ describe('POST /api/users', function () {
 				request(app)
 					.post('/api/users')
 					.set('3day-app', 'test')
-					.send({username: 'ian'})
+					.send({username: 'iandotkelly'})
 					.end(function (err, res) {
 						should(err).not.exist;
 						res.body.should.be.an.object;
 						res.body.message.should.be.equal('Bad request');
 						res.body.reason.should.be.equal(10000);
+						done();
+					});
+			});
+		});
+
+
+
+		describe('With bad username', function () {
+
+			it('should return a 400', function (done) {
+				request(app)
+					.post('/api/users')
+					.set('3day-app', 'test')
+					.send({username: 'ian', password: 'isGoodenough123!' })
+					.expect(400, done);
+			});
+
+			it('should return contain the expected error body', function (done) {
+				request(app)
+					.post('/api/users')
+					.set('3day-app', 'test')
+					.send({username: 'ian', password: 'isGoodenough123!'})
+					.end(function (err, res) {
+						should(err).not.exist;
+						res.body.should.be.an.object;
+						res.body.message.should.be.equal('Username does not meet minimum standards');
+						res.body.reason.should.be.equal(15001);
+						done();
+					});
+			});
+		});
+
+		describe('With bad password', function () {
+
+			it('should return a 400', function (done) {
+				request(app)
+					.post('/api/users')
+					.set('3day-app', 'test')
+					.send({username: 'iandotkelly', password: '   ' })
+					.expect(400, done);
+			});
+
+			it('should return contain the expected error body', function (done) {
+				request(app)
+					.post('/api/users')
+					.set('3day-app', 'test')
+					.send({username: 'iandotkelly', password: '   ' })
+					.end(function (err, res) {
+						should(err).not.exist;
+						res.body.should.be.an.object;
+						res.body.message.should.be.equal('Password does not meet minimum standards');
+						res.body.reason.should.be.equal(15002);
 						done();
 					});
 			});
@@ -108,7 +159,7 @@ describe('POST /api/users', function () {
 				request(app)
 					.post('/api/users')
 					.set('3day-app', 'test')
-					.send({username: 'integrationtest', password: 'cats'})
+					.send({username: 'integrationtest', password: 'catsss'})
 					.expect(201, done);
 			});
 
@@ -116,7 +167,7 @@ describe('POST /api/users', function () {
 				request(app)
 					.post('/api/users')
 					.set('3day-app', 'test')
-					.send({username: 'integrationtest', password: 'cats'})
+					.send({username: 'integrationtest', password: 'catsss'})
 					.end(function (err, res) {
 						should(err).not.exist;
 						res.body.should.be.an.object;
@@ -124,7 +175,7 @@ describe('POST /api/users', function () {
 						User.findOne({username: 'integrationtest'}, function (err, user) {
 							should(err).not.exist;
 							user.username.should.equal('integrationtest');
-							user.validatePassword('cats', function (err, isMatch) {
+							user.validatePassword('catsss', function (err, isMatch) {
 								should(err).not.exist;
 								isMatch.should.be.true;
 								done();
@@ -140,7 +191,7 @@ describe('POST /api/users', function () {
 			// ensure a pre-existing user exists
 			beforeEach(function (done) {
 				User.remove({username: 'preexisting'}, function () {
-					var user = new User({username: 'preexisting', password: 'cats'});
+					var user = new User({username: 'preexisting', password: 'catsss'});
 					user.save(function (err) {
 						if (err) {
 							throw err;
@@ -161,7 +212,7 @@ describe('POST /api/users', function () {
 				request(app)
 					.post('/api/users')
 					.set('3day-app', 'test')
-					.send({username: 'preexisting', password: 'cats'})
+					.send({username: 'preexisting', password: 'catsss'})
 					.expect(400, done);
 			});
 
@@ -169,7 +220,7 @@ describe('POST /api/users', function () {
 				request(app)
 					.post('/api/users')
 					.set('3day-app', 'test')
-					.send({username: 'preexisting', password: 'cats'})
+					.send({username: 'preexisting', password: 'catsss'})
 					.end(function (err, res) {
 						should(err).not.exist;
 						res.body.should.be.an.object;
@@ -187,8 +238,8 @@ describe('POST /api/users', function () {
 
 		before(function (done) {
 			// we need a user
-			user = new User({username: 'updateuser', password: 'cats'});
-			duplicateUser = new User({username: 'duplicateuser', password: 'cats'});
+			user = new User({username: 'updateuser', password: 'catsss'});
+			duplicateUser = new User({username: 'duplicateuser', password: 'catsss'});
 			User.remove({username: 'updateuser'}, function (err) {
 				if (err) {
 					throw err;
@@ -231,7 +282,7 @@ describe('POST /api/users', function () {
 			it('should return a 400', function (done) {
 				request(app)
 					.post('/api/users')
-					.auth('updateuser', 'cats')
+					.auth('updateuser', 'catsss')
 					.set('3day-app', 'test')
 					.expect(400, done);
 			});
@@ -239,7 +290,7 @@ describe('POST /api/users', function () {
 			it('should return containing the expected error body', function (done) {
 				request(app)
 					.post('/api/users')
-					.auth('updateuser', 'cats')
+					.auth('updateuser', 'catsss')
 					.set('3day-app', 'test')
 					.end(function (err, res) {
 						should(err).not.exist;
@@ -256,7 +307,7 @@ describe('POST /api/users', function () {
 			it('should return a 401', function (done) {
 				request(app)
 					.post('/api/users')
-					.auth('updateuser', 'catz')
+					.auth('updateuser', 'catzss')
 					.set('3day-app', 'test')
 					.send({username: 'updatedusername', password: 'fred'})
 					.expect(401, done);
@@ -265,7 +316,7 @@ describe('POST /api/users', function () {
 			it('should return a response with WWW-Authenticate header', function (done) {
 				request(app)
 					.post('/api/users')
-					.auth('updateuser', 'catz')
+					.auth('updateuser', 'catzss')
 					.set('3day-app', 'test')
 					.send({username: 'updatedusername', password: 'fred'})
 					.end(function (err, res) {
@@ -283,9 +334,9 @@ describe('POST /api/users', function () {
 			it('should update the user', function (done) {
 				request(app)
 					.post('/api/users')
-					.auth('updateuser', 'cats')
+					.auth('updateuser', 'catsss')
 					.set('3day-app', 'test')
-					.send({username: 'updatedusername', password: 'fred'})
+					.send({username: 'updatedusername', password: 'freddy'})
 					.end(function (err, res) {
 						should(err).not.exist;
 						res.body.should.be.an.object;
@@ -297,7 +348,7 @@ describe('POST /api/users', function () {
 							// but we should find the new user - and validate its password
 							User.findOne({username: 'updatedusername'}, function (err, user) {
 								user.username.should.equal('updatedusername');
-								user.validatePassword('fred', function (err, isMatch) {
+								user.validatePassword('freddy', function (err, isMatch) {
 									should(err).not.exist;
 									isMatch.should.be.true;
 									done();
@@ -314,9 +365,9 @@ describe('POST /api/users', function () {
 			it('should return a 400 error', function (done) {
 				request(app)
 					.post('/api/users')
-					.auth('updatedusername', 'fred')
+					.auth('updatedusername', 'freddy')
 					.set('3day-app', 'test')
-					.send({username: 'duplicateuser', password: 'fred'})
+					.send({username: 'duplicateuser', password: 'freddy'})
 					.end(function (err, res) {
 						should(err).not.exist;
 						res.body.should.be.an.object;

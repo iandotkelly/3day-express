@@ -13,10 +13,20 @@ var mongoose = require('mongoose'),
 	bcrypt = require('bcrypt'),
 	// the configuration file
 	config = require('../config'),
+	// constants
+	reasonCodes = require('../lib/constants').reasonCodes,
 	// work factor for password encryption
 	SALT_WORK_FACTOR = 10,
 	db,
-	userSchema;
+	userSchema,
+	usernameValidation = /^[a-zA-Z0-9_-]{4,20}$/,
+	passwordValidation = /^[^\s]{6,20}$/;
+
+// spoof a mongoose validation error for the password validation
+var passwordValidationError = new Error();
+passwordValidationError.name = 'ValidationError';
+passwordValidationError.errors = { password: { message: '15002' } };
+
 
 var userSchema = mongoose.Schema({
 	// the compulsory authentication fields
@@ -29,7 +39,7 @@ var userSchema = mongoose.Schema({
 
 /**
  * Compares a password
- * 
+ *
  * @param  {String}   password The candidate password
  * @param  {Function} next     Callback (err, isMatch)
  */
@@ -41,6 +51,16 @@ userSchema.methods.validatePassword = function (password, next) {
 		next(null, isMatch);
 	});
 };
+
+/**
+ * Validation Methods
+ */
+
+// Ensure username is adequate length and characters
+userSchema.path('username').validate(function (value) {
+	return usernameValidation.test(value);
+}, reasonCodes.USERNAME_INVALID.toString());
+
 
 // connect to the database
 mongoose.connect(config.database);
@@ -55,6 +75,11 @@ userSchema.pre('save', function (next) {
 
 	if (!user.isModified('password')) {
 		return next();
+	}
+
+	// validation has to happen here
+	if (!passwordValidation.test(user.password)) {
+		return next(passwordValidationError);
 	}
 
 	bcrypt.genSalt(SALT_WORK_FACTOR, function (err, salt) {
