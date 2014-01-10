@@ -6,6 +6,7 @@
 
 var request = require('supertest');
 var should = require('should');
+var mongoose = require('mongoose');
 
 var app = require('../../app.js'); // this starts the server
 
@@ -228,7 +229,7 @@ describe('The Reports API', function () {
 			it('should return a 404', function (done) {
 
 				request(app)
-					.del('/api/reports/0123456789BCDEF012345')
+					.del('/api/reports/' + mongoose.Types.ObjectId())
 					.set('3day-app', 'test')
 					.auth('reportsintegration', 'cats')
 					.expect(404, done);
@@ -237,13 +238,13 @@ describe('The Reports API', function () {
 			it('should return an error object', function (done) {
 
 				request(app)
-					.del('/api/reports/0123456789BCDEF012345')
+					.del('/api/reports/' + mongoose.Types.ObjectId())
 					.set('3day-app', 'test')
 					.auth('reportsintegration', 'cats')
 					.end(function (err, res) {
 						should(err).not.exist;
 						res.body.should.be.an.object;
-						res.message.should.be.equal('Not Found');
+						res.body.message.should.be.equal('Not Found');
 						done();
 					});
 			});
@@ -291,13 +292,10 @@ describe('The Reports API', function () {
 					.end(function (err, res) {
 						should(err).not.exist;
 						res.body.should.be.an.object;
-						res.message.should.be.equal('Deleted');
+						res.body.message.should.be.equal('Deleted');
 						done();
 					});
 			});
-
-
 		});
-
 	});
 });

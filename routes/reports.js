@@ -69,7 +69,7 @@ function retrieve(req, res, next) {
 			if (err) {
 				return next(err);
 			}
-			res.send(httpStatus.OK, reports);
+			res.json(httpStatus.OK, reports);
 		});
 }
 
@@ -84,7 +84,22 @@ function update(req, res, next) {
  * Route for DELETE /api/reports/:id
  */
 function del(req, res, next) {
-	throw new Error('not implemented');
+
+	var id = req.params.id;
+
+	Report.findByIdAndRemove(id, function (err, report) {
+		if (err) {
+			return next(err);
+		}
+		if (report) {
+			return res.json(httpStatus.OK, {
+				message: 'Deleted'
+			});
+		}
+		res.json(httpStatus.NOT_FOUND, {
+			message: 'Not Found'
+		});
+	});
 }
 
 module.exports = {
