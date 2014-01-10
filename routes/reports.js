@@ -1,6 +1,9 @@
+/* jshint -W098*/
+
 /**
  * @description Route to handle operations on the /api/reports resource
  *
+ * @author - Ian Kelly
  */
 
 'use strict';
@@ -70,7 +73,23 @@ function retrieve(req, res, next) {
 		});
 }
 
+/**
+ * Route for POST /api/reports/:id
+ */
+function update(req, res, next) {
+	throw new Error('not implemented');
+}
+
+/**
+ * Route for DELETE /api/reports/:id
+ */
+function del(req, res, next) {
+	throw new Error('not implemented');
+}
+
 module.exports = {
 	create: create,
-	retrieve: retrieve
+	retrieve: retrieve,
+	update: update,
+	del: del
 };

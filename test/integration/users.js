@@ -181,7 +181,7 @@ describe('POST /api/users', function () {
 		});
 	});
 
-	describe('with an authorizaton header', function () {
+	describe('with an authorization header', function () {
 
 		var user, duplicateUser;
 

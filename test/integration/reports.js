@@ -220,4 +220,84 @@ describe('The Reports API', function () {
 			});
 		});
 	});
+
+	describe('DELETE /api/reports/:id', function () {
+
+		describe('with an unknown report', function () {
+
+			it('should return a 404', function (done) {
+
+				request(app)
+					.del('/api/reports/0123456789BCDEF012345')
+					.set('3day-app', 'test')
+					.auth('reportsintegration', 'cats')
+					.expect(404, done);
+			});
+
+			it('should return an error object', function (done) {
+
+				request(app)
+					.del('/api/reports/0123456789BCDEF012345')
+					.set('3day-app', 'test')
+					.auth('reportsintegration', 'cats')
+					.end(function (err, res) {
+						should(err).not.exist;
+						res.body.should.be.an.object;
+						res.message.should.be.equal('Not Found');
+						done();
+					});
+			});
+
+		});
+
+		describe('with a report', function () {
+
+			var report;
+
+			beforeEach(function (done) {
+				report = new Report({ userid: user._id, date: new Date()});
+				report.save(function (err) {
+					if (err) {
+						throw err;
+					}
+					done();
+				});
+			});
+
+			afterEach(function (done) {
+				report.remove(function (err) {
+					if (err) {
+						throw err;
+					}
+					done();
+				});
+			});
+
+			it('should return a 200', function (done) {
+
+				request(app)
+					.del('/api/reports/' + report._id)
+					.set('3day-app', 'test')
+					.auth('reportsintegration', 'cats')
+					.expect(200, done);
+			});
+
+			it('should return a success object', function (done) {
+
+				request(app)
+					.del('/api/reports/' + report._id)
+					.set('3day-app', 'test')
+					.auth('reportsintegration', 'cats')
+					.end(function (err, res) {
+						should(err).not.exist;
+						res.body.should.be.an.object;
+						res.message.should.be.equal('Deleted');
+						done();
+					});
+			});
+
+
+		});
+
+	});
 });

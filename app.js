@@ -12,6 +12,7 @@ var express = require('express'),
 	app = module.exports = express(),
 	customHeader = require('./lib/customheader-middleware'),
 	authenticate = require('./lib/authenticate'),
+	httpStatus = require('http-status'),
 	port = process.env['THREEDAY_PORT'] || 4000;
 
 // configure the application port
@@ -60,7 +61,7 @@ app.post('/api/users', function (req, res, next) {
 			// need to handle the 401 response explicitly
 			// not just leave this to passport.js to do
 			res.setHeader('www-authenticate', 'Basic realm="api"');
-			res.send(401);
+			res.send(httpStatus.UNAUTHORIZED);
 		})(req, res, next);
 	}
 
@@ -68,16 +69,23 @@ app.post('/api/users', function (req, res, next) {
 	routes.users.create(req, res, next);
 });
 
-// the API
+/**
+ * Non Authentication API
+ */
+
+// Userss
 app.get('/api/users', authenticate(), routes.users.retrieve);
+// Reports
 app.post('/api/reports', authenticate(), routes.reports.create);
 app.get('/api/reports/:skip/:number', authenticate(), routes.reports.retrieve);
 app.get('/api/reports/:number', authenticate(), routes.reports.retrieve);
 app.get('/api/reports', authenticate(), routes.reports.retrieve);
+app.del('/api/reports/:id', authenticate(), routes.reports.del);
+app.post('/api/reports/:id', authenticate(), routes.reports.update);
 
 /**
  * Start Server
  */
 http.createServer(app).listen(app.get('port'), function () {
-	console.log('3DAY applistening on port ' + app.get('port'));
+	console.log('3DAY app listening on port ' + app.get('port'));
 });
