@@ -77,7 +77,27 @@ function retrieve(req, res, next) {
  * Route for POST /api/reports/:id
  */
 function update(req, res, next) {
-	throw new Error('not implemented');
+
+	var id = req.params.id,
+		body = req.body;
+
+	if (!body || !body.date || !body.categories) {
+		return res.json(httpStatus.BAD_REQUEST, errorResponse);
+	}
+
+	Report.findByIdAndUpdate(id, body, function (err, report) {
+		if (err) {
+			return next(err);
+		}
+		if (report) {
+			return res.json(httpStatus.OK, {
+				message: 'Updated'
+			});
+		}
+		res.json(httpStatus.NOT_FOUND, {
+			message: 'Not Found'
+		});
+	});
 }
 
 /**

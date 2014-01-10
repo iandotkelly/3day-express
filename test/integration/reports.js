@@ -186,7 +186,6 @@ describe('The Reports API', function () {
 
 		describe('with a valid body', function () {
 
-
 			var date = new Date('December 25, 1901'),
 				report = {
 				date: date,
@@ -336,7 +335,7 @@ describe('The Reports API', function () {
 							function (err, newReport) {
 								should(err).not.exist;
 								newReport.categories[0].type.should.be.equal('other-stuff');
-								newReport.categories[0].checked.should.be.equal(true);
+								newReport.categories[0].checked.should.be.equal(false);
 								newReport.categories[0].message.should.be.equal('Lots and lots and lots');
 								done();
 							});
