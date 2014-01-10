@@ -222,6 +222,131 @@ describe('The Reports API', function () {
 		});
 	});
 
+	describe('POST /api/reports/:id', function () {
+
+		describe('with no body', function () {
+
+			it('should return a 400', function (done) {
+				request(app)
+					.post('/api/reports/' + mongoose.Types.ObjectId())
+					.set('3day-app', 'test')
+					.auth('reportsintegration', 'cats')
+					.expect(400, done);
+			});
+		});
+
+		describe('with an unknown report ID', function () {
+
+			it('should return a 404', function (done) {
+				request(app)
+					.post('/api/reports/' + mongoose.Types.ObjectId())
+					.set('3day-app', 'test')
+					.auth('reportsintegration', 'cats')
+					.send({
+						userid: user._id,
+						date: new Date(),
+						categories: [
+							{
+								type: 'stuff',
+								checked: true,
+								message: 'Lots and lots'
+							}
+						]
+					})
+					.expect(404, done);
+			});
+		});
+
+		describe('with an updated report', function () {
+
+			var report;
+
+			beforeEach(function (done) {
+				report = new Report(
+					{
+						userid: user._id,
+						date: new Date(),
+						categories: [
+							{
+								type: 'food',
+								checked: false,
+								message: 'Not much'
+							}
+						]
+					});
+				report.save(function (err) {
+					if (err) {
+						throw err;
+					}
+					done();
+				});
+			});
+
+			afterEach(function (done) {
+				report.remove(function (err) {
+					if (err) {
+						throw err;
+					}
+					done();
+				});
+			});
+
+			it('should return a 200', function (done) {
+				request(app)
+					.post('/api/reports/' + report._id)
+					.set('3day-app', 'test')
+					.auth('reportsintegration', 'cats')
+					.send({
+						userid: user._id,
+						date: new Date(),
+						categories: [
+							{
+								type: 'stuff',
+								checked: true,
+								message: 'Lots and lots'
+							}
+						]
+					})
+					.expect(200, done);
+			});
+
+			it('should update the report and return a success message', function (done) {
+				request(app)
+					.post('/api/reports/' + report._id)
+					.set('3day-app', 'test')
+					.auth('reportsintegration', 'cats')
+					.send({
+						userid: user._id,
+						date: new Date(),
+						categories: [
+							{
+								type: 'other-stuff',
+								checked: false,
+								message: 'Lots and lots and lots'
+							}
+						]
+					})
+					.end(function (err, res) {
+						should(err).not.exist;
+						res.body.message.should.be.equal('Updated');
+						Report.findOne(
+							{
+								_id: report._id
+							},
+							function (err, newReport) {
+								should(err).not.exist;
+								newReport.categories[0].type.should.be.equal('other-stuff');
+								newReport.categories[0].checked.should.be.equal(true);
+								newReport.categories[0].message.should.be.equal('Lots and lots and lots');
+								done();
+							});
+					});
+			});
+
+		});
+
+	});
+
 	describe('DELETE /api/reports/:id', function () {
 
 		describe('with an unknown report', function () {
