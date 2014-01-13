@@ -78,7 +78,6 @@ describe('User', function () {
 				}
 			);
 			user.save(function (err) {
-				console.log(err);
 				err.should.be.an.object;
 				err.name.should.be.equal('ValidationError');
 				err.errors.password.message.should.be.equal('15002');
@@ -127,6 +126,7 @@ describe('User', function () {
 
 			it('should have all the properties', function () {
 				user.username.should.be.equal('testname');
+				user.latest.getTime().should.be.equal(0);
 			});
 
 		});
@@ -151,6 +151,21 @@ describe('User', function () {
 
 		});
 
+		describe('#update()', function () {
+
+			it('should change the latest time to something like now', function (done) {
+
+				var diff = Math.abs(Date.now() - user.latest.getTime());
+				diff.should.be.greaterThan(100000);
+
+				user.setLatest(function (err) {
+					should(err).not.exist;
+					diff = Math.abs(Date.now() - user.latest.getTime());
+					diff.should.be.lessThan(100);
+					done();
+				});
+			});
+		});
 	});
 
 	describe('#findOne', function () {

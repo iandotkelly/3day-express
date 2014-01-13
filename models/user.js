@@ -32,6 +32,8 @@ var userSchema = mongoose.Schema({
 	// the compulsory authentication fields
 	username: { type: String, required: true, unique: true },
 	password: { type: String, required: true },
+	// the last updated field - defaults to January 1, 1970
+	latest: { type: Date, default: new Date(0) },
 	// default created / updated
 	created: { type: Date, default: Date.now },
 	updated: { type: Date, default: Date.now }
@@ -49,6 +51,33 @@ userSchema.methods.validatePassword = function (password, next) {
 			return next(err);
 		}
 		next(null, isMatch);
+	});
+};
+
+/**
+ * Sets the latest change to the user's data
+ *
+ * @param {Function} next Callback (err)
+ */
+userSchema.methods.setLatest = function (next) {
+
+	// set the object's latest to now
+	var now = Date.now();
+	this.latest = now;
+
+	// rather than write out in a full save - just update
+	// the property in the document
+	this.update({ latest: now }, function (err, numberAffected) {
+		if (err) {
+			return next(err);
+		}
+
+		if (numberAffected !== 1) {
+			return next(
+				new Error('Unexpected number of affected records: ' + numberAffected)
+			);
+		}
+		next();
 	});
 };
 

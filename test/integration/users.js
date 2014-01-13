@@ -175,6 +175,7 @@ describe('POST /api/users', function () {
 						User.findOne({username: 'integrationtest'}, function (err, user) {
 							should(err).not.exist;
 							user.username.should.equal('integrationtest');
+							user.latest.getTime().should.equal(0);
 							user.validatePassword('catsss', function (err, isMatch) {
 								should(err).not.exist;
 								isMatch.should.be.true;
