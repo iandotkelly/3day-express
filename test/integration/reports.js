@@ -186,7 +186,8 @@ describe('The Reports API', function () {
 
 		describe('with a valid body', function () {
 
-			var date = new Date('December 25, 1901'),
+			var lastUpdate,
+				date = new Date('December 25, 1901'),
 				report = {
 				date: date,
 				categories: [
@@ -202,13 +203,39 @@ describe('The Reports API', function () {
 				]
 			};
 
-			it('should return a 201', function (done) {
-				request(app)
-					.post('/api/reports')
-					.set('3day-app', 'test')
-					.auth('reportsintegration', 'catsss')
-					.send(report)
-					.expect(201, done);
+			before(function () {
+				lastUpdate = user.latest;
+			});
+
+			it('should return a 201 and update the user latest', function (done) {
+				// check the date has not changed on the user
+				User.findOne({ username: 'reportsintegration'}, function (err, oldUser) {
+					if (err) {
+						throw err;
+					}
+					oldUser.latest.getTime().should.be.equal(0);
+					// make the request
+					request(app)
+						.post('/api/reports')
+						.set('3day-app', 'test')
+						.auth('reportsintegration', 'catsss')
+						.send(report)
+						.end(function (err, res) {
+							// check we return a created
+							res.statusCode.should.be.equal(201);
+							// and the user last time should be updated
+							User.findOne({ username: 'reportsintegration'}, function (err, newUser) {
+								if (err) {
+									throw err;
+								}
+								var now = Date.now();
+								newUser.latest.getTime().should.not.equal(0);
+								Math.abs(now - newUser.latest.getTime()).should.be.lessThan(100);
+								done();
+							});
+						});
+				});
+
 			});
 
 			after(function () {

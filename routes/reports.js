@@ -23,6 +23,7 @@ var errorResponse = {
 function create(req, res, next) {
 
 	var body = req.body,
+		user = req.user,
 		report;
 
 	if (!body || !body.date || !body.categories) {
@@ -30,17 +31,27 @@ function create(req, res, next) {
 	}
 
 	report = new Report({
-		userid: req.user._id,
+		userid: user._id,
 		date: body.date,
 		categories: body.categories
 	});
 
+	// save the report
 	report.save(function (err) {
 		if (err) {
 			return next(err);
 		}
-		res.json(httpStatus.CREATED, {
-			message: 'Created'
+
+		// update the user latest
+		user.setLatest(function (err) {
+			if (err) {
+				return next(err);
+			}
+
+			// return a successful response
+			res.json(httpStatus.CREATED, {
+				message: 'Created'
+			});
 		});
 	});
 }
@@ -79,6 +90,7 @@ function retrieve(req, res, next) {
 function update(req, res, next) {
 
 	var id = req.params.id,
+		user = req.user,
 		body = req.body;
 
 	if (!body || !body.date || !body.categories) {
@@ -90,9 +102,18 @@ function update(req, res, next) {
 			return next(err);
 		}
 		if (report) {
-			return res.json(httpStatus.OK, {
-				message: 'Updated'
+
+			// update the user latest
+			return user.setLatest(function (err) {
+				if (err) {
+					return next(err);
+				}
+
+				res.json(httpStatus.OK, {
+					message: 'Updated'
+				});
 			});
+
 		}
 		res.json(httpStatus.NOT_FOUND, {
 			message: 'Not Found'
