@@ -9,6 +9,7 @@ var should = require('should');
 
 var app = require('../../app.js'); // this starts the server
 var User = require('../../models').User;
+var Report = require('../../models').Report;
 
 describe('POST /api/users', function () {
 
@@ -378,9 +379,95 @@ describe('POST /api/users', function () {
 					});
 			});
 		});
-
-
-
 	});
 
 });
+
+describe('GET /api/users', function () {
+
+	var user;
+
+	before(function (done) {
+		User.remove({username: 'iankelly'}, function (err) {
+			if (err) {
+				throw err;
+			}
+			user = new User({username: 'iankelly', password: 'greatpassword'});
+			user.save(function (err) {
+				if (err) {
+					throw err;
+				}
+				done();
+			});
+		});
+	});
+
+	after(function (done) {
+		user.remove(function (err) {
+			if (err) {
+				throw err;
+			}
+			done();
+		});
+	});
+
+	it('should return the user', function (done) {
+
+		request(app)
+			.get('/api/users')
+			.set('3day-app', 'test')
+			.auth('iankelly', 'greatpassword')
+			.end(function (err, res) {
+				should(err).not.exist;
+				res.body.should.be.an.object;
+				res.body.id.should.be.equal(user._id.toString());
+				res.body.username.should.be.equal('iankelly');
+				res.body.reportCount.should.be.equal(0);
+				done();
+			});
+	});
+
+	describe('with a user with a report', function () {
+
+		var report;
+
+		before(function (done) {
+
+			report = new Report({userid: user._id});
+			report.save(function (err) {
+				if (err) {
+					throw err;
+				}
+				done();
+			});
+		});
+
+		after(function (done) {
+			report.remove(function (err) {
+				if (err) {
+					throw err;
+				}
+				done();
+			});
+		});
+
+		it('should have the report count of 1', function (done) {
+
+			request(app)
+				.get('/api/users')
+				.set('3day-app', 'test')
+				.auth('iankelly', 'greatpassword')
+				.end(function (err, res) {
+					should(err).not.exist;
+					res.body.should.be.an.object;
+					res.body.id.should.be.equal(user._id.toString());
+					res.body.username.should.be.equal('iankelly');
+					res.body.reportCount.should.be.equal(1);
+					done();
+				});
+		});
+	});
+});
+
+
+

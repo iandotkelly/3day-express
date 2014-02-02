@@ -6,6 +6,7 @@
 'use strict';
 
 var User = require('../models').User;
+var Report = require('../models').Report;
 var httpStatus = require('http-status');
 var reasonCodes = require('../lib/constants').reasonCodes;
 
@@ -144,7 +145,7 @@ function create(req, res, next) {
 /**
  * Route for GET /api/users - returns the current user's profile
  */
-function retrieve(req, res) {
+function retrieve(req, res, next) {
 
 	// if we have got to this point we already have our user
 	// but we will reformat slightly rather than refetch as a lean
@@ -154,7 +155,16 @@ function retrieve(req, res) {
 		username: req.user.username
 	};
 
-	res.send(httpStatus.OK, user);
+	// retrieve report count
+	Report.count({userid: user.id}, function (err, count) {
+		if (err) {
+			// this is a genuine exception
+			return next(err);
+		}
+
+		user.reportCount = count;
+		res.send(httpStatus.OK, user);
+	});
 }
 
 

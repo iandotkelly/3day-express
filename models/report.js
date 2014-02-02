@@ -28,12 +28,13 @@ reportSchema = mongoose.Schema({
 	// default created / updated
 	created: { type: Date, default: Date.now },
 	updated: { type: Date, default: Date.now }
-	
+
 });
 
 // connect to the database
 mongoose.connect(config.database);
 db = mongoose.connection;
+
 
 db.on('error', function (err) {
 	// @todo something more elegant than log to console
