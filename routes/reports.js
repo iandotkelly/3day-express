@@ -124,7 +124,7 @@ function update(req, res, next) {
 /**
  * Route for DELETE /api/reports/:id
  */
-function del(req, res, next) {
+function remove(req, res, next) {
 
 	var id = req.params.id;
 
@@ -147,5 +147,5 @@ module.exports = {
 	create: create,
 	retrieve: retrieve,
 	update: update,
-	del: del
+	remove: remove
 };

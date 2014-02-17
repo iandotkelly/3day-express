@@ -8,5 +8,6 @@
 
 module.exports = {
 	users: require('./users'),
-	reports: require('./reports')
+	reports: require('./reports'),
+	images: require('./images')
 };

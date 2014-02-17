@@ -25,6 +25,12 @@ reportSchema = mongoose.Schema({
 			message: { type: String }
 		}
 	],
+	images: [
+		{
+			id: { type: mongoose.Schema.ObjectId, required: true },
+			description: { type: String }
+		}
+	],
 	// default created / updated
 	created: { type: Date, default: Date.now },
 	updated: { type: Date, default: Date.now }

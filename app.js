@@ -80,8 +80,11 @@ app.post('/api/reports', authenticate(), routes.reports.create);
 app.get('/api/reports/:skip/:number', authenticate(), routes.reports.retrieve);
 app.get('/api/reports/:number', authenticate(), routes.reports.retrieve);
 app.get('/api/reports', authenticate(), routes.reports.retrieve);
-app.del('/api/reports/:id', authenticate(), routes.reports.del);
+app.del('/api/reports/:id', authenticate(), routes.reports.remove);
 app.post('/api/reports/:id', authenticate(), routes.reports.update);
+app.get('/api/image/:id', authenticate(), routes.images.retrieve);
+app.post('/api/image', authenticate(), routes.images.create);
+app.del('/api/image/:id', authenticate(), routes.images.remove);
 
 /**
  * Start Server
