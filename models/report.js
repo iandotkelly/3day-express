@@ -37,10 +37,21 @@ reportSchema = mongoose.Schema({
 
 });
 
+/**
+ * Find a report by the image ID
+ *
+ * @param  {ObjectId}   imageId  The ObjectId of the image
+ * @param  {Function}	callback Callback(err, report)
+ */
+reportSchema.statics.findByImageId = function (imageId, callback) {
+
+	this.findOne({ 'images.id': imageId }, callback);
+
+};
+
 // connect to the database
 mongoose.connect(config.database);
 db = mongoose.connection;
-
 
 db.on('error', function (err) {
 	// @todo something more elegant than log to console

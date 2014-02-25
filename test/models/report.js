@@ -68,16 +68,23 @@ describe('Report', function () {
 	});
 
 
+
 	describe('find()', function () {
 
 		var report1,
 			report2,
 			report3,
-			fakeUserId = mongoose.Types.ObjectId();
+			fakeUserId = mongoose.Types.ObjectId(),
+			imageId = mongoose.Types.ObjectId();
 
 		before(function (done) {
 			report1 = new Report({userid: fakeUserId, date: new Date('June 31, 2012')});
 			report2 = new Report({userid: fakeUserId, date: new Date('July 15, 2012')});
+			// report 2 gets an image
+			report2.images.push({
+				id: imageId,
+				description: 'this is a description'
+			});
 			report3 = new Report({userid: fakeUserId, date: new Date('July 4, 2012')});
 			report1.save(function (err) {
 				if (err) {
@@ -181,7 +188,31 @@ describe('Report', function () {
 				});
 
 			});
+
+		describe('found by an incorrect image id', function () {
+
+			it('should return nothing', function (done) {
+
+				Report.findByImageId(mongoose.Types.ObjectId(), function (err, report) {
+					should(err).not.exist;
+					should(report).not.exist;
+					done();
+				});
+			});
+		});
+
+
+		describe('found by an image id', function () {
+
+			it('should return the correct report', function (done) {
+
+				Report.findByImageId(imageId, function (err, report) {
+					should(err).not.exist;
+					should(report).exist;
+					report.date.getTime().should.equal((new Date('July 15, 2012')).getTime());
+					done();
+				});
+			});
+		});
 	});
-
-
 });
