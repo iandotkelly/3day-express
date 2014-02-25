@@ -7,15 +7,30 @@
 var request = require('supertest');
 var should = require('should');
 var mongoose = require('mongoose');
+var Grid = require('gridfs-stream');
+var config = require('../../config');
 
 var app = require('../../app.js'); // this starts the server
 
 var User = require('../../models').User;
 var Report = require('../../models').Report;
 
+var gfs;
+
+// assign mongoose's mongodb driver to Grid
+Grid.mongo = mongoose.mongo;
+
+// creaete connection
+var connection = mongoose.createConnection(config.database);
+connection.once('open', function () {
+	gfs = new Grid(connection.db);
+});
+
 describe('The images API', function () {
 
 	var user, otherUser, report;
+
+	var imageId; // used to link an image used between tests
 
 	before(function (done) {
 		// ensure the user has been deleted from last tests even if failed
@@ -98,8 +113,8 @@ describe('The images API', function () {
 						res.statusCode.should.be.equal(400);
 						res.body.should.be.an.object;
 						res.body.status.should.be.equal('failed');
-						res.body.reason.should.be.equal(20000);
-						res.body.message.should.be.equal('No image found');
+						res.body.reason.should.be.equal(20002);
+						res.body.message.should.be.equal('Not a multipart request');
 						done();
 					});
 
@@ -114,11 +129,8 @@ describe('The images API', function () {
 					.post('/api/image')
 					.set('3day-app', 'test')
 					.auth('reportsintegration', 'catsss')
-					.set('Content-Type', 'multipart/form-data')
 					.attach('image', 'test/fixtures/test.jpg')
-					.expect('Content-Type', /json/)
 					.end(function (err, res) {
-						console.log(res.body);
 						should(err).not.exist;
 						res.statusCode.should.be.equal(400);
 						res.body.should.be.an.object;
@@ -143,9 +155,7 @@ describe('The images API', function () {
 					.set('Content-Type', 'multipart/form-data')
 					.attach('image', 'test/fixtures/test.jpg')
 					.field('metadata', 'thisissomecrappymetadata')
-					.expect('Content-Type', /json/)
 					.end(function (err, res) {
-						console.log(res.body);
 						should(err).not.exist;
 						res.statusCode.should.be.equal(400);
 						res.body.should.be.an.object;
@@ -158,11 +168,9 @@ describe('The images API', function () {
 			});
 		});
 
-
 		describe('with an image, a report id but no report', function () {
 
 			it('should 400', function (done) {
-
 				request(app)
 					.post('/api/image')
 					.set('3day-app', 'test')
@@ -174,7 +182,6 @@ describe('The images API', function () {
 					}))
 					.expect('Content-Type', /json/)
 					.end(function (err, res) {
-						console.log(res.body);
 						should(err).not.exist;
 						res.statusCode.should.be.equal(400);
 						res.body.should.be.an.object;
@@ -183,8 +190,151 @@ describe('The images API', function () {
 						res.body.message.should.be.equal('Report not found');
 						done();
 					});
-
 			});
+		});
+
+		describe('with an image, a report id but the report is owned by another user', function () {
+			it('should 400', function (done) {
+				request(app)
+					.post('/api/image')
+					.set('3day-app', 'test')
+					.auth('otheruser', 'catsss')
+					.set('Content-Type', 'multipart/form-data')
+					.attach('image', 'test/fixtures/test.jpg')
+					.field('metadata', JSON.stringify({
+						reportid: report._id
+					}))
+					.expect('Content-Type', /json/)
+					.end(function (err, res) {
+						should(err).not.exist;
+						res.statusCode.should.be.equal(400);
+						res.body.should.be.an.object;
+						res.body.status.should.be.equal('failed');
+						res.body.reason.should.be.equal(20001);
+						res.body.message.should.be.equal('Report not found');
+						done();
+					});
+			});
+		});
+
+
+		describe('with an image, and a valid a report id owned by the user', function () {
+
+			it('should 200', function (done) {
+				request(app)
+					.post('/api/image')
+					.set('3day-app', 'test')
+					.auth('reportsintegration', 'catsss')
+					.set('Content-Type', 'multipart/form-data')
+					.attach('image', 'test/fixtures/test.jpg')
+					.field('metadata', JSON.stringify({
+						reportid: report._id
+					}))
+					.expect('Content-Type', /json/)
+					.end(function (err, res) {
+						should(err).not.exist;
+						res.statusCode.should.be.equal(200);
+						res.body.should.be.an.object;
+						res.body.status.should.be.equal('ok');
+						res.body.id.should.be.a.string;
+						// record the id so we can delete the file
+						// after the test
+						imageId = res.body.id;
+						done();
+					});
+			});
+		});
+	});
+
+	describe('downloads', function () {
+
+		// delete the image file file
+		after(function (done) {
+			/*
+			setTimeout(function () {
+				gfs.remove({
+					_id: imageId
+				}, function (err) {
+					if (err) {
+						throw err;
+					}
+					done();
+				});
+			}, 500);*/
+			done();
+		});
+
+		describe('with an bad image ID', function () {
+
+			it('should 400', function (done) {
+				request(app)
+					.get('/api/image/qwerty')
+					.set('3day-app', 'test')
+					.auth('reportsintegration', 'catsss')
+					.expect('Content-Type', /json/)
+					.end(function (err, res) {
+						should(err).not.exist;
+						res.statusCode.should.be.equal(400);
+						res.body.should.be.an.object;
+						res.body.status.should.be.equal('failed');
+						done();
+					});
+			});
+		});
+
+		describe('with an unknown image ID', function () {
+
+			it('should 404', function (done) {
+				request(app)
+					.get('/api/image/abcdabcdabcdabcdabcdabcd')
+					.set('3day-app', 'test')
+					.auth('reportsintegration', 'catsss')
+					.expect('Content-Type', /json/)
+					.end(function (err, res) {
+						should(err).not.exist;
+						res.statusCode.should.be.equal(404);
+						res.body.should.be.an.object;
+						res.body.status.should.be.equal('failed');
+						done();
+					});
+			});
+		});
+
+		describe('with an unauthorized user', function () {
+
+			it('should 401', function (done) {
+				request(app)
+					.get('/api/image/' + imageId)
+					.set('3day-app', 'test')
+					.auth('otheruser', 'catsss')
+					.expect('Content-Type', /json/)
+					.end(function (err, res) {
+						should(err).not.exist;
+						res.statusCode.should.be.equal(401);
+						res.body.should.be.an.object;
+						res.body.status.should.be.equal('failed');
+						done();
+					});
+			});
+
+		});
+
+
+		describe('with an authorized user', function () {
+
+			it('should 200', function (done) {
+				request(app)
+					.get('/api/image/' + imageId)
+					.set('3day-app', 'test')
+					.auth('reportsintegration', 'catsss')
+					.end(function (err, res) {
+						should(err).not.exist;
+						res.statusCode.should.be.equal(200);
+						res.headers['content-type'].should.be.equal('image/jpeg');
+						done();
+					});
+			});
+
 		});
 	});
 });

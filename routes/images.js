@@ -17,6 +17,10 @@ var Report = require('../models').Report;
 
 var gfs;
 
+// Constants
+//
+var MULTIPART_HEADER = 'multipart/form-data;';
+
 // assign mongoose's mongodb driver to Grid
 grid.mongo = mongoose.mongo;
 
@@ -26,6 +30,92 @@ connection.once('open', function () {
 	gfs = grid(connection.db);
 });
 
+
+/**
+ * Completes an upload operation
+ *
+ * The upload comes in two parts - the image and the metadata
+ * These trigger two different async events:
+ *
+ * - The image streaming
+ * - The report retrieval
+ *
+ * This method is only run when both of these events are completed,
+ * and updates the report with the image ID, then returns the
+ * response.
+ *
+ * @param  {Object}   uploadState Records state of the upload
+ * @param  {Response} res         The response object
+ * @param  {Function} next        The callback to be used when an error occurs
+ */
+function completeUpload(uploadState, res, next) {
+
+	// ugly attempt to remove the file several seconds
+	// after we discover a problem - only way I could
+	// find of doing this
+	function deleteFileEventually(id) {
+		setTimeout(function () {
+			// remove with an empty callback as
+			// to be honest, we don't care, this
+			// an exception, and can be cleaned up later if
+			// needed
+			gfs.remove({_id: id }, function () {});
+		}, 3000);
+
+	}
+
+	// if no file was found - writestream will be falsy
+	// we can return at this point with an error response
+	if (!uploadState.writeStream) {
+		return res.json(httpStatus.BAD_REQUEST, {
+			status: 'failed',
+			reason: reasonCodes.NO_IMAGE_FOUND,
+			message: 'No image found'
+		});
+	}
+
+	// if there was never a report id found
+	if (!uploadState.reportId) {
+		deleteFileEventually(uploadState.gridfsFileId);
+		// we didn't even get a report id
+		return res.json(httpStatus.BAD_REQUEST, {
+			status: 'failed',
+			reason: reasonCodes.MISSING_REPORT_ID,
+			message: 'No report ID'
+		});
+	}
+
+	// if no report was found
+	if (!uploadState.report) {
+		deleteFileEventually(uploadState.gridfsFileId);
+		// didn't find a report
+		return res.json(httpStatus.BAD_REQUEST, {
+			status: 'failed',
+			reason: reasonCodes.REPORT_NOT_FOUND,
+			message: 'Report not found'
+		});
+	}
+
+	// update the report with the file ID and description
+	uploadState.report.images.push({
+		id: uploadState.gridfsFileId,
+		description: uploadState.description
+	});
+
+	// save the report
+	uploadState.report.save(function (err) {
+		if (err) {
+			return next(err);
+		}
+		// we're done
+		res.json(httpStatus.OK, {
+			status: 'ok',
+			id: uploadState.gridfsFileId
+		});
+	});
+
+}
+
 /**
  * REST API
  *
@@ -33,18 +123,30 @@ connection.once('open', function () {
  */
 function create(req, res, next) {
 
-	// the writeable gridfs stream
-	var writestream;
+	var contentType = req.headers['content-type'];
 
-	// metadata
-	var reportId;
-	var description;
+	// this request *must* be a multipart form - if we don't
+	// reject this, the busboy will time out
+	if (!contentType || contentType.indexOf(MULTIPART_HEADER) !== 0) {
+		return res.json(httpStatus.BAD_REQUEST, {
+			status: 'failed',
+			reason: reasonCodes.NOT_MULTIPART,
+			message: 'Not a multipart request'
+		});
+	}
 
-	// any retrieved report
-	var report;
+	// this object will store all state information
+	// through the upload process
+	var uploadState = {
+		gridfsFileId: null,
+		writeStream: null,
+		reportId: null,
+		description: null,
+		report: null
+	};
 
-	// create an ID for the file
-	var id = mongoose.Types.ObjectId();
+	var reportRetrievalOngoing = false;
+	var requestProcessingComplete = false;
 
 	// use busboy to parse the request
 	var busboy = new Busboy({
@@ -54,121 +156,90 @@ function create(req, res, next) {
 	// Stream the file
 	busboy.on('file', function (fieldname, file, filename, encoding, mimetype) {
 
-		// stream the file to mongodb
-		writestream = gfs.createWriteStream({
-			root: 'images',
-			_id: id,
+		var config = {
 			mode: 'w',
-			mimetype: mimetype,
 			metadata: {
 				user: req.user._id
 			}
-		});
+		};
 
-		// pipe the file into the stream
-		file.pipe(writestream);
+		config['content_type'] = mimetype;
+
+		// stream the file to mongodb
+		uploadState.writeStream = gfs.createWriteStream(config);
+
+		uploadState.gridfsFileId = uploadState.writeStream.id;
+
+		file.pipe(uploadState.writeStream);
 	});
 
 	// Process non file field
 	busboy.on('field', function (key, value) {
 
-		// process a metadata field
-		if (key === 'metadata') {
+		// record that a non-file field was detected
+		uploadState.fieldDetected = true;
 
-			// need to parse the string
-			try {
-				value = JSON.parse(value);
-			} catch (err) {
-				return;
-			}
-
-			if (value.reportid) {
-
-				// record we got the report id
-				reportId = value.reportid;
-
-				// record any description
-				description = value.description;
-
-				// retrieve the report
-				Report.findOne({
-					_id: value.reportid,
-					userid: req.user._id
-				},
-				function (err, foundReport) {
-					if (err) {
-						return next(err);
-					}
-
-					report = foundReport;
-				});
-			}
+		// the field must have a metadata key
+		if (key !== 'metadata') {
+			return;
 		}
+
+		// need to parse the string
+		try {
+			value = JSON.parse(value);
+		} catch (err) {
+			return;
+		}
+
+		// the value must include a report id string
+		if (typeof value.reportid !== 'string') {
+			return;
+		}
+
+		// record we got the report id
+		uploadState.reportId = value.reportid;
+
+		// record any description (optional)
+		uploadState.description = value.description;
+
+		// retrieve the report
+		reportRetrievalOngoing = true;
+		Report.findOne({
+			_id: value.reportid,
+			userid: req.user._id
+		},
+		function (err, foundReport) {
+			if (err) {
+				return next(err);
+			}
+			// ok the report retrieval has
+			// completed for better or worse
+			reportRetrievalOngoing = false;
+			uploadState.report = foundReport;
+
+			// if this callback occurs last, we
+			// should call the completeUpload method
+			// to finish off
+			if (requestProcessingComplete) {
+				return completeUpload(uploadState, res, next);
+			}
+		});
 	});
 
 	// Process end of request
 	busboy.on('finish', function () {
 
-		// if no file was found
-		if (!writestream) {
-			return res.json(httpStatus.BAD_REQUEST, {
-				status: 'failed',
-				reason: reasonCodes.NO_IMAGE_FOUND,
-				message: 'No image found'
-			});
+		// record the request processing has been
+		// completed
+		requestProcessingComplete = true;
+
+		if (!reportRetrievalOngoing) {
+			return completeUpload(uploadState, res, next);
 		}
-
-		if (!reportId) {
-			// we didn't even get a report id
-			return gfs.remove({_id: id}, function (err) {
-				if (err) {
-					return next(err);
-				}
-				res.json(httpStatus.BAD_REQUEST, {
-					status: 'failed',
-					reason: reasonCodes.MISSING_REPORT_ID,
-					message: 'No report ID'
-				});
-			});
-		}
-
-		if (!report) {
-			console.log('!Y!UH!YI!YIO!');
-			// didn't find a report
-			return gfs.remove({_id: id}, function (err) {
-				if (err) {
-					return next(err);
-				}
-				res.json(httpStatus.BAD_REQUEST, {
-					status: 'failed',
-					reason: reasonCodes.REPORT_NOT_FOUND,
-					message: 'Report not found'
-				});
-			});
-		}
-
-		// update the report
-		report.images.push({
-			id: id,
-			description: description
-		});
-
-		// update the report
-		report.save(function (err) {
-			if (err) {
-				return next(err);
-			}
-			// we're done
-			res.json(httpStatus.OK, {
-				status: 'ok',
-				id: id
-			});
-		});
-
 	});
 
 	// pipe the request into busboy
-	return req.pipe(busboy);
+	req.pipe(busboy);
 }
 
 /**
@@ -179,25 +250,48 @@ function create(req, res, next) {
 function retrieve(req, res, next) {
 
 	var user = req.user;
+	var id;
 
-	// ensure the user owns the fole
+	// try to parse the ID, as we only accept mongo object IDs
+	try {
+		id = mongoose.Types.ObjectId(req.params.id);
+	} catch (err) {
+		return res.json(httpStatus.BAD_REQUEST, {
+			status: 'failed',
+			reasonCode: reasonCodes.BAD_ID,
+			message: 'Bad Request'
+		});
+	}
+
+	// find the file
 	gfs.files.findOne({
-		_id: req.param.id
+		_id: id
 	}, function (err, file) {
 		if (err) {
 			return next(err);
 		}
 
-		if (file.userid !== user._id) {
+		// if no file - then 404
+		if (!file) {
+			return res.json(httpStatus.NOT_FOUND, {
+				status: 'failed',
+				message: 'Not found'
+			});
+		}
+
+		// if unauthorized
+		if (file.metadata.user.toString() !== user._id.toString()) {
 			// this file is not owned by the user
 			return res.json(httpStatus.UNAUTHORIZED, {
 				status: 'failed',
 				message: 'Unauthorized'
 			});
 		}
-	});
 
-	return gfs.createReadStream({_id: req.param.id}).pipe(res);
+		// ok - we can stream this file
+		res.setHeader('content-type', file.contentType);
+		gfs.createReadStream({_id: id}).pipe(res);
+	});
 }
 
 /**
@@ -209,7 +303,7 @@ function remove(req, res, next) {
 
 	var user = req.user;
 
-	// ensure the user owns the fole
+	// ensure the user owns the file
 	gfs.files.findOne({
 		_id: req.param.id
 	}, function (err, file) {
@@ -224,6 +318,8 @@ function remove(req, res, next) {
 				message: 'Unauthorized'
 			});
 		}
+
+		// need to also remove from the report
 	});
 
 	gfs.remove({_id: req.params.id}, function (err) {
