@@ -49,6 +49,28 @@ reportSchema.statics.findByImageId = function (imageId, callback) {
 
 };
 
+/**
+ * Remove an image
+ *
+ * @param  {ObjectId}   imageId  The ObjectId of the image
+ * @param  {Function}	callback Callback(err, numAffected)
+ */
+reportSchema.statics.removeImageByImageId = function (imageId, callback) {
+
+	this.update({
+		'images.id': imageId
+	},
+	{
+		$pull: {
+			'images': { id: imageId }
+		}
+	},
+	{
+		multi: false
+	},
+	callback);
+};
+
 // connect to the database
 mongoose.connect(config.database);
 db = mongoose.connection;
