@@ -6,6 +6,9 @@
 'use strict';
 
 var express = require('express'),
+	morgan = require('morgan'),
+	bodyParser = require('body-parser'),
+	errorHandler = require('errorhandler'),
 	routes = require('./routes'),
 	http = require('http'),
 	passport = require('passport'),
@@ -19,7 +22,7 @@ var express = require('express'),
 app.set('port', port);
 
 // set up the logger
-app.use(express.logger());
+app.use(morgan('dev'));
 
 // custom middleware to discourage access from non approved clients
 app.use(customHeader);
@@ -28,15 +31,11 @@ app.use(customHeader);
 app.use(passport.initialize());
 
 // middleware to parse json encoded body
-app.use(express.json());
-app.use(express.urlencoded());
-
-// router
-app.use(app.router);
+app.use(bodyParser());
 
 // development only error handler
 if (app.get('env') === 'development') {
-	app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
+	app.use(errorHandler({ dumpExceptions: true, showStack: true }));
 }
 
 /**
