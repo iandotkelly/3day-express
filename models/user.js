@@ -35,7 +35,7 @@ var userSchema = mongoose.Schema({
 	// the last updated field - defaults to January 1, 1970
 	latest: { type: Date, default: new Date(0) },
   // list of 'friends'
-  friends: [mongoose.Schema.Types.ObjectId],
+  friends: [ mongoose.Schema.Types.ObjectId ],
 	// default created / updated
 	created: { type: Date, default: Date.now },
 	updated: { type: Date, default: Date.now }
@@ -84,10 +84,10 @@ userSchema.methods.setLatest = function (next) {
 };
 
 /**
- * Retuens whether a user is a friend
-
+ * Returns whether a user is a friend
+ *
  * @param {Srtring}  other The username of the potential friend
- * @param {Function} next  Callback (err, friend-state)
+ * @param {Function} next  Callback (err, friend-state, friend-id)
  */
 userSchema.methods.isFriend = function (other, next) {
 
@@ -96,7 +96,7 @@ userSchema.methods.isFriend = function (other, next) {
   }
 
   var self = this;
-  
+
   // find the user
   module.exports.findOne(
     { username: other },
@@ -114,9 +114,95 @@ userSchema.methods.isFriend = function (other, next) {
       }
 
       // is the user in the friend index
-      next(null, self.friends.indexOf(user._id) >= 0);
+      if (self.friends.indexOf(user._id) >= 0) {
+        next(null, true, user._id);
+      } else {
+        next(null, false);
+      }
     }
   );
+};
+
+
+/**
+ * Add a friend by user-id
+ *
+ * @param {Srtring}  other The username of the new friend
+ * @param {Function} next  Callback (err)
+ */
+userSchema.methods.addFriend = function (username, next) {
+
+  if (typeof username !== 'string') {
+    return next(new Error('username should be a string'));
+  }
+
+  var self = this;
+
+  // find the friend
+  module.exports.findOne(
+    { username: username },
+    '-__v',
+
+    function (err, user) {
+      // error when finding user
+      if (err) {
+        return next(err);
+      }
+
+      // user not known at all
+      if (!user) {
+        return next(new Error('username: ' + username + ' not found'));
+      }
+
+      // only add the user if its not there already
+      if (self.friends.indexOf(user._id) === -1) {
+        self.friends.push(user._id);
+        self.save(function (err) {
+          if (err) {
+            return next(err);
+          }
+          return next();
+        });
+      } else {
+        return next();
+      }
+    }
+  );
+};
+
+
+/**
+ * Delete a friend by user-id
+ *
+ * @param {Srtring}  other The username of the friend
+ * @param {Function} next  Callback (err)
+ */
+userSchema.methods.deleteFriend = function (username, next) {
+
+  if (typeof username !== 'string') {
+    return next(new Error('username should be a string'));
+  }
+
+  var self = this;
+
+  self.isFriend(username, function(err, state, id) {
+    if (err) {
+      return next(err);
+    }
+
+    if (id) {
+      var index = self.friends.indexOf(id);
+      self.friends.splice(index);
+      self.save(function (err) {
+        if (err) {
+          return next(err);
+        }
+        next();
+      });
+    } else {
+      return next(new Error('username: ' + username + ' not a friend'));
+    }
+  });
 };
 
 /**
@@ -138,7 +224,7 @@ userSchema.pre('save', function (next) {
 	var user = this;
 
 	// refresh the updated property
-	user.updated = Date.now;
+	user.updated = Date.now();
 
 	if (!user.isModified('password')) {
 		return next();

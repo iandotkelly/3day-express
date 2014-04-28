@@ -295,36 +295,202 @@ describe('User', function () {
     });
 
     it('with a non string, it should return an error', function (done) {
-      myuser.isFriend(1, function (err) {
+      myuser.isFriend(1, function (err, state, id) {
         should(err).error;
+        should(state).be.undefined;
+        should(id).be.undefined;
         done();
       });
     });
 
     it('with an unknown username it should return false', function (done) {
-      myuser.isFriend('rubbish', function (err, state) {
+      myuser.isFriend('rubbish', function (err, state, id) {
         should(err).not.error;
         state.should.be.false;
+        should(id).be.undefined;
         done();
       });
     });
 
     it('with the non friend should return false', function (done) {
-      myuser.isFriend('notfriend', function (err, state) {
+      myuser.isFriend('notfriend', function (err, state, id) {
         should(err).not.error;
         state.should.be.false;
+        should(id).be.undefined;
         done();
       });
     });
 
     it('with the friend should return true', function (done) {
-      myuser.isFriend('friend', function (err, state) {
+      myuser.isFriend('friend', function (err, state, id) {
         should(err).not.error;
         state.should.be.true;
+        should(id.toString()).be.equal(friend._id.toString());
         done();
       });
     });
 
   });
+
+
+  describe('#addFriend', function() {
+
+    var myuser, friend;
+
+    before(function (done) {
+
+      friend = new User({
+        username: 'friend',
+        password: 'othergenius'
+      });
+      myuser = new User({
+          username: 'iandotkelly',
+          password: 'genius'
+      });
+
+      User.remove({username: 'iandotkelly'}, function (err) {
+        if (err) {
+          throw err;
+        }
+        User.remove({username: 'friend'}, function (err) {
+          if (err) {
+            throw err;
+          }
+
+          myuser.save(function (err) {
+            if (err) {
+              throw err;
+            }
+            friend.save(function (err) {
+              if (err) {
+                throw err;
+              }
+              done();
+            });
+          });
+        });
+      });
+    });
+
+    after(function () {
+      myuser.remove(function (err) {
+        if (err) {
+          throw err;
+        }
+        friend.remove(function (err) {
+          if (err) {
+            throw err;
+          }
+        });
+      });
+    });
+
+    it('should return an error if the user id is not known', function (done) {
+      myuser.addFriend('nonsense', function(err) {
+        should(err).be.an.object;
+        done();
+      });
+    });
+
+    it('should add a valid new user', function (done) {
+      myuser.friends.length.should.be.equal(0);
+      myuser.addFriend('friend', function (err) {
+        should(err).not.be.an.object;
+        User.findOne({
+          username: 'iandotkelly'
+        }, function (err, user) {
+          should(err).not.be.an.object;
+          user.friends.length.should.be.equal(1);
+          user.friends[0].toString().should.be.equal(friend._id.toString());
+          done();
+        });
+      });
+    });
+  });
+
+
+
+  describe('#deleteFriend', function() {
+
+    var myuser, friend;
+
+    before(function (done) {
+
+      friend = new User({
+        username: 'friend',
+        password: 'othergenius'
+      });
+      myuser = new User({
+          username: 'iandotkelly',
+          password: 'genius',
+          friends: [
+            friend._id
+          ]
+      });
+
+      User.remove({username: 'iandotkelly'}, function (err) {
+        if (err) {
+          throw err;
+        }
+        User.remove({username: 'friend'}, function (err) {
+          if (err) {
+            throw err;
+          }
+          myuser.save(function (err) {
+            if (err) {
+              throw err;
+            }
+            friend.save(function (err) {
+              if (err) {
+                throw err;
+              }
+              done();
+            });
+          });
+        });
+      });
+    });
+
+    after(function () {
+      myuser.remove(function (err) {
+        if (err) {
+          throw err;
+        }
+        friend.remove(function (err) {
+          if (err) {
+            throw err;
+          }
+        });
+      });
+    });
+
+    it('should return an error if the username is not known', function (done) {
+      myuser.deleteFriend('nonsense', function(err) {
+        should(err).be.an.object;
+        User.findOne({
+          username: 'iandotkelly'
+        }, function (err, user) {
+          should(err).not.be.an.object;
+          user.friends.length.should.be.equal(1);
+        });
+        done();
+      });
+    });
+
+    it('should delete the friend', function (done) {
+      myuser.deleteFriend('friend', function (err) {
+        should(err).not.be.an.object;
+        User.findOne({
+          username: 'iandotkelly'
+        }, function (err, user) {
+          should(err).not.be.an.object;
+          user.friends.length.should.be.equal(0);
+          done();
+        });
+      });
+    });
+  });
+
+
 
 });
