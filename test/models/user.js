@@ -220,4 +220,111 @@ describe('User', function () {
 
 	});
 
+
+  describe('#isFriend', function() {
+
+    var myuser, friend, notFriend;
+
+    before(function (done) {
+
+      friend = new User({
+        username: 'friend',
+        password: 'othergenius'
+      });
+      myuser = new User({
+          username: 'iandotkelly',
+          password: 'genius',
+          friends: [
+            friend._id
+          ]
+      });
+      notFriend = new User({
+        username: 'notfriend',
+        password: 'thirdgenius'
+      });
+
+      User.remove({username: 'iandotkelly'}, function (err) {
+        if (err) {
+          throw err;
+        }
+        User.remove({username: 'friend'}, function (err) {
+          if (err) {
+            throw err;
+          }
+          User.remove({username: 'notfriend'}, function (err) {
+            if (err) {
+              throw err;
+            }
+            myuser.save(function (err) {
+              if (err) {
+                throw err;
+              }
+              friend.save(function (err) {
+                if (err) {
+                  throw err;
+                }
+                notFriend.save(function (err) {
+                  if (err) {
+                    throw err;
+                  }
+                  done();
+                });
+              });
+            });
+          });
+        });
+      });
+    });
+
+    after(function () {
+      myuser.remove(function (err) {
+        if (err) {
+          throw err;
+        }
+        friend.remove(function (err) {
+          if (err) {
+            throw err;
+          }
+          notFriend.remove(function (err) {
+            if (err) {
+              throw err;
+            }
+          });
+        });
+      });
+    });
+
+    it('with a non string, it should return an error', function (done) {
+      myuser.isFriend(1, function (err) {
+        should(err).error;
+        done();
+      });
+    });
+
+    it('with an unknown username it should return false', function (done) {
+      myuser.isFriend('rubbish', function (err, state) {
+        should(err).not.error;
+        state.should.be.false;
+        done();
+      });
+    });
+
+    it('with the non friend should return false', function (done) {
+      myuser.isFriend('notfriend', function (err, state) {
+        should(err).not.error;
+        state.should.be.false;
+        done();
+      });
+    });
+
+    it('with the friend should return true', function (done) {
+      myuser.isFriend('friend', function (err, state) {
+        should(err).not.error;
+        state.should.be.true;
+        done();
+      });
+    });
+
+  });
+
 });

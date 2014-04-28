@@ -34,6 +34,8 @@ var userSchema = mongoose.Schema({
 	password: { type: String, required: true },
 	// the last updated field - defaults to January 1, 1970
 	latest: { type: Date, default: new Date(0) },
+  // list of 'friends'
+  friends: [mongoose.Schema.Types.ObjectId],
 	// default created / updated
 	created: { type: Date, default: Date.now },
 	updated: { type: Date, default: Date.now }
@@ -79,6 +81,42 @@ userSchema.methods.setLatest = function (next) {
 		}
 		next();
 	});
+};
+
+/**
+ * Retuens whether a user is a friend
+
+ * @param {Srtring}  other The username of the potential friend
+ * @param {Function} next  Callback (err, friend-state)
+ */
+userSchema.methods.isFriend = function (other, next) {
+
+  if (typeof other !== 'string') {
+    return next(new Error('other should be a string'));
+  }
+
+  var self = this;
+  
+  // find the user
+  module.exports.findOne(
+    { username: other },
+    '-__v',
+
+    function (err, user) {
+      // error when finding user
+      if (err) {
+        return next(err);
+      }
+
+      // user not known at all
+      if (!user) {
+        return next(null, false);
+      }
+
+      // is the user in the friend index
+      next(null, self.friends.indexOf(user._id) >= 0);
+    }
+  );
 };
 
 /**
