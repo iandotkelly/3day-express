@@ -72,8 +72,12 @@ app.post('/api/users', function (req, res, next) {
  * Non Authentication API
  */
 
-// Userss
+// Users
 app.get('/api/users', authenticate(), routes.users.retrieve);
+// Friends
+app.get('/api/friends', authenticate(), routes.friends.retrieve);
+app.post('/api/friends/:username', authenticate(), routes.friends.create);
+app.del('/api/friends/:username', authenticate(), routes.friends.remove);
 // Reports
 app.post('/api/reports', authenticate(), routes.reports.create);
 app.get('/api/reports/:skip/:number', authenticate(), routes.reports.retrieve);

@@ -1,6 +1,7 @@
 /**
  * @description Route to handle operations on the /users resource
  *
+ * @copyright Copyright (c) Ian Kelly
  */
 
 'use strict';

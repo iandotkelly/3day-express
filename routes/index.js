@@ -9,5 +9,6 @@
 module.exports = {
 	users: require('./users'),
 	reports: require('./reports'),
-	images: require('./images')
+	images: require('./images'),
+    friends: require('./friends')
 };

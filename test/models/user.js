@@ -490,7 +490,4 @@ describe('User', function () {
       });
     });
   });
-
-
-
 });

@@ -468,6 +468,3 @@ describe('GET /api/users', function () {
 		});
 	});
 });
-
-
-
