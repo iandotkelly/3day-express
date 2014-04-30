@@ -14,16 +14,7 @@ var User = require('../models').User;
  */
 function create(req, res, next) {
 
-    var username = req.param.username;
-
-    if (!username) {
-        return res.json(httpStatus.BAD_REQUEST, {
-            status: 'failed',
-            message: 'missing username parameter'
-        });
-    }
-
-    req.user.addFriend(username, function(err, user) {
+    req.user.addFriend(req.params.username, function(err, user) {
 
         if (err) {
             if (err.name === 'NotFound') {
@@ -77,16 +68,7 @@ function retrieve(req, res, next) {
  */
 function remove(req, res, next) {
 
-    var username = req.param.username;
-
-    if (!username) {
-        return res.json(httpStatus.BAD_REQUEST, {
-            status: 'failed',
-            message: 'missing username parameter'
-        });
-    }
-
-    req.user.deleteFriend(username, function(err) {
+    req.user.deleteFriend(req.params.username, function (err) {
 
         if (err) {
             if (err.name === 'NotFound') {

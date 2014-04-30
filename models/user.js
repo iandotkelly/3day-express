@@ -163,15 +163,17 @@ userSchema.methods.addFriend = function(username, next) {
         return next(new Error('username should be a string'));
     }
 
+    console.log('addFriend');
+
     var self = this;
 
     // find the friend
-    module.exports.findOne({
+    User.findOne({
             username: username
         },
         '-__v',
-
         function(err, user) {
+
             // error when finding user
             if (err) {
                 return next(err);
@@ -185,17 +187,17 @@ userSchema.methods.addFriend = function(username, next) {
             }
 
             // only add the user if its not there already
-            if (self.friends.indexOf(user._id) === -1) {
-                self.friends.push(user._id);
-                self.save(function(err) {
-                    if (err) {
-                        return next(err);
-                    }
-                    return next();
-                });
-            } else {
-                return next();
+            if (self.friends.indexOf(user._id) >= 0) {
+                return next(null, user);
             }
+
+            self.friends.push(user._id);
+            self.save(function (err) {
+                if (err) {
+                    return next(err);
+                }
+                return next(null, user);
+            });
         }
     );
 };
@@ -207,7 +209,7 @@ userSchema.methods.addFriend = function(username, next) {
  * @param {Srtring}  other The username of the friend
  * @param {Function} next  Callback (err)
  */
-userSchema.methods.deleteFriend = function(username, next) {
+userSchema.methods.deleteFriend = function (username, next) {
 
     if (typeof username !== 'string') {
         return next(new Error('username should be a string'));
@@ -215,14 +217,14 @@ userSchema.methods.deleteFriend = function(username, next) {
 
     var self = this;
 
-    self.isFriend(username, function(err, state, id) {
+    self.isFriend(username, function (err, state, id) {
         if (err) {
             return next(err);
         }
 
         if (id) {
             var index = self.friends.indexOf(id);
-            self.friends.splice(index);
+            self.friends.splice(index, 1);
             self.save(function(err) {
                 if (err) {
                     return next(err);
@@ -288,4 +290,5 @@ db.on('error', function(err) {
 });
 
 // we are exporting the mongoose model
-module.exports = mongoose.model('User', userSchema);
+var User = mongoose.model('User', userSchema);
+module.exports = User;
