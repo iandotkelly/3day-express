@@ -48,8 +48,19 @@ var userSchema = mongoose.Schema({
         type: Date,
         default: new Date(0)
     },
-    // list of 'friends'
-    friends: [mongoose.Schema.Types.ObjectId],
+    // followers
+    followers: [{
+        id: mongoose.Schema.Types.ObjectId,
+        status: {
+            active: Boolean,
+            approved: Boolean,
+            blocked: Boolean
+        }
+    }],
+    // following
+    following: [mongoose.Schema.Types.ObjectId],
+    // whether to auto-approve followers
+    autoApprove: Boolean,
     // default created / updated
     created: {
         type: Date,
@@ -107,63 +118,17 @@ userSchema.methods.setLatest = function(next) {
 };
 
 /**
- * Returns whether a user is a friend
+ * Add a following by user-id
  *
- * @param {Srtring}  other The username of the potential friend
- * @param {Function} next  Callback (err, friend-state, friend-id)
+ * @param {String}   other      The username of the new person to follow
+ * @param {Object}   status     The status flags of the user
+ * @param {Function} next       Callback (err)
  */
-userSchema.methods.isFriend = function(other, next) {
-
-    if (typeof other !== 'string') {
-        return next(new Error('other should be a string'));
-    }
-
-    var self = this;
-
-    // find the user
-    module.exports.findOne(
-        {
-            username: other
-        },
-        {
-            '_id': 1
-        },
-
-        function(err, user) {
-            // error when finding user
-            if (err) {
-                return next(err);
-            }
-
-            // user not known at all
-            if (!user) {
-                return next(null, false);
-            }
-
-            // is the user in the friend index
-            if (self.friends.indexOf(user._id) >= 0) {
-                next(null, true, user._id);
-            } else {
-                next(null, false);
-            }
-        }
-    );
-};
-
-
-/**
- * Add a friend by user-id
- *
- * @param {Srtring}  other The username of the new friend
- * @param {Function} next  Callback (err)
- */
-userSchema.methods.addFriend = function(username, next) {
+userSchema.methods.addFollowing = function(username, next) {
 
     if (typeof username !== 'string') {
         return next(new Error('username should be a string'));
     }
-
-    console.log('addFriend');
 
     var self = this;
 
@@ -187,11 +152,12 @@ userSchema.methods.addFriend = function(username, next) {
             }
 
             // only add the user if its not there already
-            if (self.friends.indexOf(user._id) >= 0) {
+            if (self.following.indexOf(user._id) >= 0) {
                 return next(null, user);
             }
 
-            self.friends.push(user._id);
+            self.following.push(user._id);
+
             self.save(function (err) {
                 if (err) {
                     return next(err);
@@ -202,14 +168,13 @@ userSchema.methods.addFriend = function(username, next) {
     );
 };
 
-
 /**
- * Delete a friend by user-id
+ * Delete a follower by user-id
  *
  * @param {Srtring}  other The username of the friend
  * @param {Function} next  Callback (err)
  */
-userSchema.methods.deleteFriend = function (username, next) {
+userSchema.methods.deleteFollowing = function (username, next) {
 
     if (typeof username !== 'string') {
         return next(new Error('username should be a string'));
@@ -217,26 +182,40 @@ userSchema.methods.deleteFriend = function (username, next) {
 
     var self = this;
 
-    self.isFriend(username, function (err, state, id) {
+    User.findOne({
+        username: username
+    },
+    '_id',
+    function (err, user) {
         if (err) {
+            console.log(err);
             return next(err);
         }
 
-        if (id) {
-            var index = self.friends.indexOf(id);
-            self.friends.splice(index, 1);
-            self.save(function(err) {
-                if (err) {
-                    return next(err);
-                }
-                next();
-            });
-        } else {
-            var error = new Error('username: ' + username + ' not a friend');
-            error.name = 'NotFound';
-            return next(error);
+        if (!user) {
+            err = new Error('username: ' + username + ' not known');
+            err.name = 'NotKnown';
+            return next(err);
         }
+
+        var index = self.following.indexOf(user._id);
+
+        if (index < 0) {
+            err = new Error('username: ' + username + ' was not being followed');
+            err.name = 'NotFollowing';
+            return next(err);
+        }
+
+        self.following.splice(index, 1);
+        self.save(function (err) {
+            if (err) {
+                return next(err);
+            }
+            return next();
+        });
+
     });
+
 };
 
 /**

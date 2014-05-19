@@ -120,19 +120,6 @@ describe('With no api key', function () {
 				.auth('testapi', 'genius')
 				.expect(401, done);
 		});
-
-		it('should issue an authentication challenge', function (done) {
-			request(app)
-				.get('/api/users')
-				.set('3day-app', 'test')
-				.auth('incorrect', 'credentials')
-				.end(function (err, response) {
-					should(err).not.exit;
-					var header = response.header['www-authenticate'];
-					header.should.be.equal('Basic realm="api"');
-					done();
-				});
-		});
 	});
 });
 
