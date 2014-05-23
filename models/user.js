@@ -54,22 +54,25 @@ var userSchema = mongoose.Schema({
 		status: {
 			active: {
 				type: Boolean,
-                default: true
+				default: true
 			},
 			approved: {
-                type: Boolean,
-                default: true
-            },
+				type: Boolean,
+				default: true
+			},
 			blocked: {
-                type: Boolean,
-                default: false
-            }
+				type: Boolean,
+				default: false
+			}
 		}
 	}],
 	// following
 	following: [mongoose.Schema.Types.ObjectId],
 	// whether to auto-approve followers
-	autoApprove: Boolean,
+	autoApprove: {
+		type: Boolean,
+		default: true
+	},
 	// default created / updated
 	created: {
 		type: Date,
@@ -153,12 +156,30 @@ userSchema.methods.addFollower = function(user, next) {
 		}
 	});
 
-	this.save(function(err) {
-		if (err) {
-			return next(err);
+	this.save(next);
+};
+
+/**
+ * Remove a follower - i.e. mark as inactive
+ *
+ * @param {Object}   user The user to mark as inactive
+ * @param {Function} next Callback
+ */
+userSchema.methods.removeFollower = function(user, next) {
+
+    console.log(user._id);
+
+	// look for the follower in the collection already
+	for (var i = 0; i < this.followers.length; i++) {
+		var follower = this.followers[i];
+
+		if (follower.id.equals(user._id)) {
+			follower.status.active = false;
+			break;
 		}
-		next();
-	});
+	}
+
+	this.save(next);
 };
 
 /**
@@ -238,33 +259,36 @@ userSchema.methods.deleteFollowing = function(username, next) {
 	User.findOne({
 			username: username
 		},
-		'_id',
-		function(err, user) {
+		'_id, followers',
+		function(err, following) {
 			if (err) {
 				console.log(err);
 				return next(err);
 			}
 
-			if (!user) {
-				err = new Error('username: ' + username + ' not known');
+			if (!following) {
+				err = new Error('username: ' + following + ' not known');
 				err.name = 'NotKnown';
 				return next(err);
 			}
 
-			var index = self.following.indexOf(user._id);
+			var index = self.following.indexOf(following._id);
 
 			if (index < 0) {
-				err = new Error('username: ' + username + ' was not being followed');
+				err = new Error('username: ' + following + ' was not being followed');
 				err.name = 'NotFollowing';
 				return next(err);
 			}
 
 			self.following.splice(index, 1);
-			self.save(function(err) {
+
+			// we need to mark the person following as inactive
+			following.removeFollower(self, function(err) {
 				if (err) {
 					return next(err);
 				}
-				return next();
+				// finally we should save this
+				self.save(next);
 			});
 
 		});

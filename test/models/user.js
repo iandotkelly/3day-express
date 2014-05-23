@@ -327,14 +327,26 @@ describe('User', function() {
 
 			friend = new User({
 				username: 'friend',
-				password: 'othergenius'
+				password: 'othergenius',
+				followers: []
 			});
+
 			myuser = new User({
 				username: 'iandotkelly',
 				password: 'genius',
+				followers: [],
 				following: [
 					friend._id
 				]
+			});
+
+			friend.followers.push({
+				id: myuser._id,
+				status: {
+					active: true,
+					approved: true,
+					blocked: false
+				}
 			});
 
 			User.remove({
@@ -385,8 +397,14 @@ describe('User', function() {
 				}, function(err, user) {
 					should(err).not.be.an.object;
 					user.following.length.should.be.equal(1);
+					User.findOne({
+						username: 'friend'
+					}, function(err, user) {
+						should(err).not.be.an.object;
+						user.followers.length.should.be.equal(1);
+						done();
+					});
 				});
-				done();
 			});
 		});
 
@@ -398,7 +416,16 @@ describe('User', function() {
 				}, function(err, user) {
 					should(err).not.be.an.object;
 					user.following.length.should.be.equal(0);
-					done();
+					User.findOne({
+						username: 'friend'
+					}, function(err, user) {
+                        console.log(JSON.stringify(user, '\n'));
+						should(err).not.be.an.object;
+						user.followers.length.should.be.equal(1);
+						user.followers[0].status.active.should.be.false;
+						done();
+					});
+
 				});
 			});
 		});
