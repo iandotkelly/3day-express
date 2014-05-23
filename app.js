@@ -77,7 +77,7 @@ app.get('/api/users', authenticate(), routes.users.retrieve);
 // Following
 app.get('/api/following', authenticate(), routes.following.retrieve);
 app.post('/api/following/:username', authenticate(), routes.following.create);
-app.del('/api/following/:username', authenticate(), routes.following.remove);
+app.delete('/api/following/:username', authenticate(), routes.following.remove);
 // Followers
 
 // Reports
@@ -85,7 +85,7 @@ app.post('/api/reports', authenticate(), routes.reports.create);
 app.get('/api/reports/:skip/:number', authenticate(), routes.reports.retrieve);
 app.get('/api/reports/:number', authenticate(), routes.reports.retrieve);
 app.get('/api/reports', authenticate(), routes.reports.retrieve);
-app.del('/api/reports/:id', authenticate(), routes.reports.remove);
+app.delete('/api/reports/:id', authenticate(), routes.reports.remove);
 app.post('/api/reports/:id', authenticate(), routes.reports.update);
 // Report timeline
 app.post('/api/timeline/:time/:number', authenticate(), routes.timeline.bypage);
@@ -93,7 +93,7 @@ app.post('/api/timeline/from/:time/to/:time', authenticate(), routes.timeline.by
 // Images
 app.get('/api/image/:id', authenticate(), routes.images.retrieve);
 app.post('/api/image', authenticate(), routes.images.create);
-app.del('/api/image/:id', authenticate(), routes.images.remove);
+app.delete('/api/image/:id', authenticate(), routes.images.remove);
 
 /**
  * Start Server
