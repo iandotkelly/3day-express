@@ -52,9 +52,18 @@ var userSchema = mongoose.Schema({
 	followers: [{
 		id: mongoose.Schema.Types.ObjectId,
 		status: {
-			active: Boolean,
-			approved: Boolean,
-			blocked: Boolean
+			active: {
+				type: Boolean,
+                default: true
+			},
+			approved: {
+                type: Boolean,
+                default: true
+            },
+			blocked: {
+                type: Boolean,
+                default: false
+            }
 		}
 	}],
 	// following
