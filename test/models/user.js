@@ -297,7 +297,7 @@ describe('User', function() {
 					// check the following
 					should(err).not.be.an.object;
 					user.following.length.should.be.equal(1);
-					user.following[0].toString().should.be.equal(friend._id.toString());
+					user.following[0].id.toString().should.be.equal(friend._id.toString());
 					User.findOne({
 						username: 'friend'
 					}, function(err, user) {
@@ -335,9 +335,9 @@ describe('User', function() {
 				username: 'iandotkelly',
 				password: 'genius',
 				followers: [],
-				following: [
-					friend._id
-				]
+				following: [{
+					id: friend._id
+				}]
 			});
 
 			friend.followers.push({
@@ -390,7 +390,7 @@ describe('User', function() {
 		});
 
 		it('should return an error if the username is not known', function(done) {
-			myuser.deleteFollowing('nonsense', function(err) {
+			myuser.deleteFollowing(new User({username: 'nonsense', password:'catssss'})._id, function(err) {
 				err.should.be.an.object;
 				User.findOne({
 					username: 'iandotkelly'
@@ -409,7 +409,7 @@ describe('User', function() {
 		});
 
 		it('should delete the following', function(done) {
-			myuser.deleteFollowing('friend', function(err) {
+			myuser.deleteFollowing(friend._id, function(err) {
 				should(err).not.be.an.object;
 				User.findOne({
 					username: 'iandotkelly'
@@ -419,15 +419,41 @@ describe('User', function() {
 					User.findOne({
 						username: 'friend'
 					}, function(err, user) {
-                        console.log(JSON.stringify(user, '\n'));
+						console.log(JSON.stringify(user, '\n'));
 						should(err).not.be.an.object;
 						user.followers.length.should.be.equal(1);
 						user.followers[0].status.active.should.be.false;
 						done();
 					});
-
 				});
 			});
+		});
+	});
+
+	describe('#allAssociatedIds', function() {
+
+		var myuser;
+
+		before(function() {
+
+			myuser = new User({
+				username: 'iandotkelly',
+				password: 'genius',
+				followers: [{id:'000000000000000000000001'}, {id:'000000000000000000000003'}, {id:'000000000000000000000004'}],
+				following: [{id:'000000000000000000000002'}, {id:'000000000000000000000003'}, {id:'000000000000000000000005'}]
+			});
+		});
+
+		it('should correctly concatenate ids', function() {
+			var output = myuser.allAssociatedIds();
+            output.should.be.an.array;
+			output.length.should.be.equal(5);
+            (output.indexOf('000000000000000000000001') >= 0).should.be.true;
+            (output.indexOf('000000000000000000000002') >= 0).should.be.true;
+            (output.indexOf('000000000000000000000003') >= 0).should.be.true;
+            (output.indexOf('000000000000000000000004') >= 0).should.be.true;
+            (output.indexOf('000000000000000000000005') >= 0).should.be.true;
+            (output.indexOf('000000000000000000000006') >= 0).should.be.false;
 		});
 	});
 });

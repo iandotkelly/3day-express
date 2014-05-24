@@ -10,268 +10,293 @@ var should = require('should');
 var app = require('../../app.js'); // this starts the server
 var User = require('../../models').User;
 
-describe('The following API', function () {
+describe('The following API', function() {
 
-    var user, friend1, friend2;
+	var user, friend1, friend2;
 
-    before(function (done) {
-        // remove any existing users of the same name
-        User.remove({username: 'friend1'}, function (err) {
-            if (err) {
-                throw err;
-            }
-            User.remove({username: 'friend2'}, function (err) {
-                if (err) {
-                    throw err;
-                }
-                User.remove({username: 'friendintegration'}, function (err) {
-                    if (err) {
-                        throw err;
-                    }
-                    // add users
-                    user = new User({username: 'friendintegration', password: 'catsss'});
-                    friend1 = new User({username: 'friend1', password: 'catsss'});
-                    friend2 = new User({username: 'friend2', password: 'catsss'});
-                    user.following.push(friend1);
-                    user.save(function (err) {
-                        if (err) {
-                            throw err;
-                        }
-                        friend1.save(function (err) {
-                            if (err) {
-                                throw err;
-                            }
-                            friend2.save(function (err) {
-                                if (err) {
-                                    throw err;
-                                }
-                                done();
-                            });
-                        });
-                    });
-                });
-            });
-        });
-    });
+	before(function(done) {
+		// remove any existing users of the same name
+		User.remove({
+			username: 'friend1'
+		}, function(err) {
+			if (err) {
+				throw err;
+			}
+			User.remove({
+				username: 'friend2'
+			}, function(err) {
+				if (err) {
+					throw err;
+				}
+				User.remove({
+					username: 'friendintegration'
+				}, function(err) {
+					if (err) {
+						throw err;
+					}
+					// add users
+					user = new User({
+						username: 'friendintegration',
+						password: 'catsss'
+					});
+					friend1 = new User({
+						username: 'friend1',
+						password: 'catsss'
+					});
+					friend2 = new User({
+						username: 'friend2',
+						password: 'catsss'
+					});
+					user.following.push({
+						id: friend1._id
+					});
+					friend1.followers.push({
+						id: user._id,
+						status: {
+							approved: true,
+							active: true,
+							blocked: false
+						}
+					});
+					user.save(function(err) {
+						if (err) {
+							throw err;
+						}
+						friend1.save(function(err) {
+							if (err) {
+								throw err;
+							}
+							friend2.save(function(err) {
+								if (err) {
+									throw err;
+								}
+								done();
+							});
+						});
+					});
+				});
+			});
+		});
+	});
 
-    after(function (done) {
-        // delete the user
-        user.remove(function (err) {
-            if (err) {
-                throw err;
-            }
-            friend1.remove(function (err) {
-                if (err) {
-                    throw err;
-                }
-                friend2.remove(function (err) {
-                    if (err) {
-                        throw err;
-                    }
-                    done();
-                });
-            });
-        });
-    });
+	after(function(done) {
+		// delete the user
+		user.remove(function(err) {
+			if (err) {
+				throw err;
+			}
+			friend1.remove(function(err) {
+				if (err) {
+					throw err;
+				}
+				friend2.remove(function(err) {
+					if (err) {
+						throw err;
+					}
+					done();
+				});
+			});
+		});
+	});
 
-    describe('GET /api/following', function () {
+	describe('GET /api/following', function() {
 
-        describe('for a user without people they are following', function () {
+		describe('for a user without people they are following', function() {
 
-            it('should return a 200', function (done) {
-                request(app)
-                    .get('/api/following')
-                    .set('3day-app', 'test')
-                    .auth('friend1', 'catsss')
-                    .expect(200, done);
-            });
+			it('should return a 200', function(done) {
+				request(app)
+					.get('/api/following')
+					.set('3day-app', 'test')
+					.auth('friend1', 'catsss')
+					.expect(200, done);
+			});
 
-            it('should return an empty array', function (done) {
-                request(app)
-                    .get('/api/following')
-                    .set('3day-app', 'test')
-                    .auth('friend1', 'catsss')
-                    .end(function (err, res) {
-                        should(err).be.not.an.object;
-                        res.body.should.be.an.array;
-                        res.body.length.should.equal(0);
-                        done();
-                    });
-            });
+			it('should return an empty array', function(done) {
+				request(app)
+					.get('/api/following')
+					.set('3day-app', 'test')
+					.auth('friend1', 'catsss')
+					.end(function(err, res) {
+						should(err).be.not.an.object;
+						res.body.should.be.an.array;
+						res.body.length.should.equal(0);
+						done();
+					});
+			});
 
-        });
-
-
-        describe('for a user with people following', function () {
-
-            it('should return a 200', function (done) {
-                request(app)
-                    .get('/api/following')
-                    .set('3day-app', 'test')
-                    .auth('friendintegration', 'catsss')
-                    .expect(200, done);
-            });
-
-            it('should return the users in an array', function (done) {
-
-                request(app)
-                    .get('/api/following')
-                    .set('3day-app', 'test')
-                    .auth('friendintegration', 'catsss')
-                    .end(function (err, res) {
-                        should(err).be.not.an.object;
-                        res.body.should.be.an.array;
-                        res.body.length.should.be.equal(1);
-                        res.body[0].username.should.be.equal('friend1');
-                        done();
-                    });
-
-            });
-
-        });
-
-    });
+		});
 
 
-    describe('POST /api/following/:username', function () {
+		describe('for a user with people following', function() {
 
-        describe('with no user', function () {
+			it('should return a 200', function(done) {
+				request(app)
+					.get('/api/following')
+					.set('3day-app', 'test')
+					.auth('friendintegration', 'catsss')
+					.expect(200, done);
+			});
 
-            it('should return a 404', function (done) {
-                request(app)
-                    .post('/api/following')
-                    .set('3day-app', 'test')
-                    .auth('friendintegration', 'catsss')
-                    .expect(404, done);
-            });
+			it('should return the users in an array', function(done) {
 
-        });
+				request(app)
+					.get('/api/following')
+					.set('3day-app', 'test')
+					.auth('friendintegration', 'catsss')
+					.end(function(err, res) {
+						should(err).be.not.an.object;
+						res.body.should.be.an.array;
+						res.body.length.should.be.equal(1);
+                        console.log(res.body);
+                        console.log(friend1);
+						res.body[0].username.should.be.equal('friend1');
+						done();
+					});
+			});
+		});
 
-        describe('for an unknown user', function () {
+	});
 
-            it('should return a 404', function (done) {
-                request(app)
-                    .post('/api/following/nonsense')
-                    .set('3day-app', 'test')
-                    .auth('friendintegration', 'catsss')
-                    .expect(404, done);
-            });
 
-            it('should return an error response', function (done) {
-                request(app)
-                    .post('/api/following/nonsense')
-                    .set('3day-app', 'test')
-                    .auth('friendintegration', 'catsss')
-                    .end(function (err, res) {
-                        should(err).be.not.an.object;
-                        res.body.should.be.an.object;
-                        res.body.status.should.be.equal('failed');
-                        done();
-                    });
-            });
-        });
+	describe('POST /api/following/:username', function() {
 
-        describe('for an known user', function () {
+		describe('with no user', function() {
 
-            it('should return a 200', function (done) {
-                request(app)
-                    .post('/api/following/friend2')
-                    .set('3day-app', 'test')
-                    .auth('friendintegration', 'catsss')
-                    .expect(200, done);
-            });
+			it('should return a 404', function(done) {
+				request(app)
+					.post('/api/following')
+					.set('3day-app', 'test')
+					.auth('friendintegration', 'catsss')
+					.expect(404, done);
+			});
 
-            it('should return an success response with the id', function (done) {
-                request(app)
-                    .post('/api/following/friend2')
-                    .set('3day-app', 'test')
-                    .auth('friendintegration', 'catsss')
-                    .end(function (err, res) {
-                        should(err).be.not.an.object;
-                        res.body.should.be.an.object;
-                        res.body.status.should.be.equal('success');
-                        res.body.id.should.be.equal(friend2._id.toString());
-                        done();
-                    });
-            });
+		});
 
-            it('should now have the person following added', function (done) {
-                User.findOne({
-                    username: 'friendintegration'
-                }, function (err, user) {
-                    user.following.should.be.an.array;
-                    user.following.length.should.be.equal(2);
-                    user.following[0].toString().should.be.equal(friend1._id.toString());
-                    user.following[1].toString().should.be.equal(friend2._id.toString());
-                    done();
-                });
-            });
-        });
-    });
+		describe('for an unknown user', function() {
 
-    describe('DELETE /api/following/:username', function () {
+			it('should return a 404', function(done) {
+				request(app)
+					.post('/api/following/nonsense')
+					.set('3day-app', 'test')
+					.auth('friendintegration', 'catsss')
+					.expect(404, done);
+			});
 
-        describe('with no user', function () {
+			it('should return an error response', function(done) {
+				request(app)
+					.post('/api/following/nonsense')
+					.set('3day-app', 'test')
+					.auth('friendintegration', 'catsss')
+					.end(function(err, res) {
+						should(err).be.not.an.object;
+						res.body.should.be.an.object;
+						res.body.status.should.be.equal('failed');
+						done();
+					});
+			});
+		});
 
-            it('should return a 404', function (done) {
-                request(app)
-                    .del('/api/following')
-                    .set('3day-app', 'test')
-                    .auth('friendintegration', 'catsss')
-                    .expect(404, done);
-            });
-        });
+		describe('for an known user', function() {
 
-        describe('for an unknown user', function () {
+			it('should return a 200', function(done) {
+				request(app)
+					.post('/api/following/friend2')
+					.set('3day-app', 'test')
+					.auth('friendintegration', 'catsss')
+					.expect(200, done);
+			});
 
-            it('should return a 404', function (done) {
-                request(app)
-                    .del('/api/following/nonsense')
-                    .set('3day-app', 'test')
-                    .auth('friendintegration', 'catsss')
-                    .expect(404, done);
-            });
+			it('should return an success response with the id', function(done) {
+				request(app)
+					.post('/api/following/friend2')
+					.set('3day-app', 'test')
+					.auth('friendintegration', 'catsss')
+					.end(function(err, res) {
+						should(err).be.not.an.object;
+						res.body.should.be.an.object;
+						res.body.status.should.be.equal('success');
+						res.body.id.should.be.equal(friend2._id.toString());
+						done();
+					});
+			});
 
-            it('should return an error response', function (done) {
-                request(app)
-                    .del('/api/following/nonsense')
-                    .set('3day-app', 'test')
-                    .auth('friendintegration', 'catsss')
-                    .end(function (err, res) {
-                        should(err).be.not.an.object;
-                        res.body.should.be.an.object;
-                        res.body.status.should.be.equal('failed');
-                        done();
-                    });
-            });
-        });
+			it('should now have the person following added', function(done) {
+				User.findOne({
+					username: 'friendintegration'
+				}, function(err, user) {
+					user.following.should.be.an.array;
+					user.following.length.should.be.equal(2);
+					user.following[0].toString().should.be.equal(friend1._id.toString());
+					user.following[1].toString().should.be.equal(friend2._id.toString());
+					done();
+				});
+			});
+		});
+	});
 
-        describe('for an known user', function () {
+	describe('DELETE /api/following/:username', function() {
 
-            it('should return an success response', function (done) {
-                request(app)
-                    .del('/api/following/friend1')
-                    .set('3day-app', 'test')
-                    .auth('friendintegration', 'catsss')
-                    .end(function (err, res) {
-                        should(err).be.not.an.object;
-                        res.status.should.be.equal(200);
-                        res.body.should.be.an.object;
-                        res.body.status.should.be.equal('success');
-                        done();
-                    });
-            });
+		describe('with no user', function() {
 
-            it('should now have the friend1 removed', function (done) {
-                User.findOne({
-                    username: 'friendintegration'
-                }, function (err, user) {
-                    user.following.should.be.an.array;
-                    user.following.length.should.be.equal(1);
-                    user.following[0].toString().should.be.equal(friend2._id.toString());
-                    done();
-                });
-            });
-        });
-    });
+			it('should return a 404', function(done) {
+				request(app)
+					.del('/api/following')
+					.set('3day-app', 'test')
+					.auth('friendintegration', 'catsss')
+					.expect(404, done);
+			});
+		});
+
+		describe('for an unknown user', function() {
+
+			it('should return a 404', function(done) {
+				request(app)
+					.del('/api/following/nonsense')
+					.set('3day-app', 'test')
+					.auth('friendintegration', 'catsss')
+					.expect(404, done);
+			});
+
+			it('should return an error response', function(done) {
+				request(app)
+					.del('/api/following/nonsense')
+					.set('3day-app', 'test')
+					.auth('friendintegration', 'catsss')
+					.end(function(err, res) {
+						should(err).be.not.an.object;
+						res.body.should.be.an.object;
+						res.body.status.should.be.equal('failed');
+						done();
+					});
+			});
+		});
+
+		describe('for an known user', function() {
+
+			it('should return an success response', function(done) {
+				request(app)
+					.del('/api/following/friend1')
+					.set('3day-app', 'test')
+					.auth('friendintegration', 'catsss')
+					.end(function(err, res) {
+						should(err).be.not.an.object;
+						res.status.should.be.equal(200);
+						res.body.should.be.an.object;
+						res.body.status.should.be.equal('success');
+						done();
+					});
+			});
+
+			it('should now have the friend1 removed', function(done) {
+				User.findOne({
+					username: 'friendintegration'
+				}, function(err, user) {
+					user.following.should.be.an.array;
+					user.following.length.should.be.equal(1);
+					user.following[0].toString().should.be.equal(friend2._id.toString());
+					done();
+				});
+			});
+		});
+	});
 });

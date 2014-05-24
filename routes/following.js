@@ -7,7 +7,6 @@
 'use strict';
 
 var httpStatus = require('http-status');
-var User = require('../models').User;
 
 /**
  * Add a person you are following
@@ -41,26 +40,10 @@ function create(req, res, next) {
 /**
  * Retrieve a list of all the people a user is following
  */
-function retrieve(req, res, next) {
-
-	var user = req.user;
-
-	// find all documents - but we're only interested
-	// in a couple of fields
-	User.find({
-			'_id': {
-				$in: user.following
-			}
-		}, {
-			'_id': 1,
-			'username': 1
-		},
-		function(err, docs) {
-			if (err) {
-				return next(err);
-			}
-			res.json(httpStatus.OK, docs);
-		});
+function retrieve(req, res) {
+    console.log('&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&');
+    console.log(req.user.following);
+	return res.json(httpStatus.OK, req.user.following);
 }
 
 /**

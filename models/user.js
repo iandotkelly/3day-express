@@ -8,11 +8,13 @@
 'use strict';
 
 // using mongoose ODM
-var mongoose = require('mongoose'),
+var mongoose = require('mongoose');
 	// bcrypt used to store password hashes
-	bcrypt = require('bcrypt'),
+var bcrypt = require('bcrypt');
+
+var indexOfId = require('../lib/indexOfId');
 	// the configuration file
-	config = require('../config'),
+var config = require('../config'),
 	// constants
 	reasonCodes = require('../lib/constants').reasonCodes,
 	// work factor for password encryption
@@ -50,7 +52,10 @@ var userSchema = mongoose.Schema({
 	},
 	// followers
 	followers: [{
-		id: mongoose.Schema.Types.ObjectId,
+		id: {
+			type: mongoose.Schema.Types.ObjectId,
+			required: true
+		},
 		status: {
 			active: {
 				type: Boolean,
@@ -67,7 +72,12 @@ var userSchema = mongoose.Schema({
 		}
 	}],
 	// following
-	following: [mongoose.Schema.Types.ObjectId],
+	following: [{
+		id: {
+			type: mongoose.Schema.Types.ObjectId,
+			required: true
+		}
+	}],
 	// whether to auto-approve followers
 	autoApprove: {
 		type: Boolean,
@@ -167,18 +177,16 @@ userSchema.methods.addFollower = function(user, next) {
  */
 userSchema.methods.removeFollower = function(user, next) {
 
-    console.log(user._id);
+  // get the index of the follower
+  var index = indexOfId(this.followers, user._id)
 
-	// look for the follower in the collection already
-	for (var i = 0; i < this.followers.length; i++) {
-		var follower = this.followers[i];
+  // if we don't find them, then just return
+  if (index < 0) {
+    return next();
+  }
 
-		if (follower.id.equals(user._id)) {
-			follower.status.active = false;
-			break;
-		}
-	}
-
+  // otherwise set active state to false and save
+  this.followers[index].status.active = false;
 	this.save(next);
 };
 
@@ -228,7 +236,9 @@ userSchema.methods.addFollowing = function(username, next) {
 				}
 
 				// add us as following
-				self.following.push(user._id);
+				self.following.push({
+					id: user._id
+				});
 
 				self.save(function(err) {
 					if (err) {
@@ -248,21 +258,16 @@ userSchema.methods.addFollowing = function(username, next) {
  * @param {Srtring}  other The username of the friend
  * @param {Function} next  Callback (err)
  */
-userSchema.methods.deleteFollowing = function(username, next) {
-
-	if (typeof username !== 'string') {
-		return next(new Error('username should be a string'));
-	}
+userSchema.methods.deleteFollowing = function(id, next) {
 
 	var self = this;
 
 	User.findOne({
-			username: username
+			_id: id
 		},
 		'_id, followers',
 		function(err, following) {
 			if (err) {
-				console.log(err);
 				return next(err);
 			}
 
@@ -272,7 +277,7 @@ userSchema.methods.deleteFollowing = function(username, next) {
 				return next(err);
 			}
 
-			var index = self.following.indexOf(following._id);
+			var index = indexOfId(self.following, following._id);
 
 			if (index < 0) {
 				err = new Error('username: ' + following + ' was not being followed');
@@ -296,6 +301,90 @@ userSchema.methods.deleteFollowing = function(username, next) {
 };
 
 /**
+ * Returns an array of all associated IDs
+ */
+userSchema.methods.allAssociatedIds = function() {
+
+	var id, index, len;
+	var ids = {};
+
+	// followers
+	for (index = 0, len = this.followers.length; index < len; index++) {
+		id = this.followers[index].id;
+		if (!ids[id]) {
+			ids[id] = true;
+		}
+	}
+
+	// following
+	for (index = 0, len = this.following.length; index < len; index++) {
+		id = this.following[index].id;
+		if (!ids[id]) {
+			ids[id] = true;
+		}
+	}
+
+	// make array from all the object keys
+	var output = [];
+	for (var key in ids) {
+		if (ids.hasOwnProperty(key)) {
+			output.push(key);
+		}
+	}
+
+	return output;
+};
+
+/**
+ * Populate the associated users with usernames
+
+ * @param {Function} next Callback
+ */
+userSchema.methods.populateAssociated = function(next) {
+
+	var ids = this.allAssociatedIds();
+
+	if (ids.length === 0) {
+		return next();
+	}
+
+	User.find({
+			'_id': {
+				$in: ids
+			},
+		},
+		'_id, username',
+		function(err, associates) {
+			if (err) {
+				return next(err);
+			}
+
+			// iterate over all the users
+			for (var associateIndex = 0, associatesLen = associates.length; associateIndex < associatesLen; associateIndex++) {
+				var associate = associates[associateIndex];
+
+				for (var index = 0, len = this.followers.index; index < len; index++) {
+					var follower = this.followers[index];
+					if (associates._id.equals(follower.id)) {
+						follower.username = associate.username;
+						break;
+					}
+				}
+
+				for (index = 0, len = this.following.index; index < len; index--) {
+					var following = this.following[index];
+					if (associates._id.equals(following.id)) {
+						following.username = associate.username;
+						break;
+					}
+				}
+			}
+			next();
+		});
+};
+
+
+/**
  * Validation Methods
  */
 
@@ -309,7 +398,9 @@ userSchema.path('username').validate(function(value) {
 mongoose.connect(config.database);
 db = mongoose.connection;
 
-// register function to run on save to process the password
+/**
+ * Perform some pre-save implementation
+ */
 userSchema.pre('save', function(next) {
 	var user = this;
 
@@ -339,6 +430,7 @@ userSchema.pre('save', function(next) {
 		});
 	});
 });
+
 
 db.on('error', function(err) {
 	// @todo something more elegant than log to console
