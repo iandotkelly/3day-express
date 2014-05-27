@@ -311,6 +311,11 @@ userSchema.methods.removeFollowing = function(id, next) {
  */
 userSchema.methods.isAuthorized = function(otherUserId, next) {
 
+    // by definition we are authorized to view our own stuff
+    if (this._id.equals(otherUserId)) {
+        return next(null, true);
+    }
+
 	var self = this;
 
 	User.findById(otherUserId,
