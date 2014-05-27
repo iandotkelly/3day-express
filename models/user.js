@@ -292,16 +292,62 @@ userSchema.methods.removeFollowing = function(id, next) {
 				}
 
 				following.removeFollower(self._id, function(err) {
-                    if (err) {
-                        return next(err);
-                    }
-                    next();
-                });
+					if (err) {
+						return next(err);
+					}
+					next();
+				});
 			});
 
 	});
 };
 
+/**
+ * Whether this user is approved to access a resource of
+ * another user
+ *
+ * @param {user}   otherUserId The ObjectId of the other user
+ * @param {Function} next      Callback
+ */
+userSchema.methods.isAuthorized = function(otherUserId, next) {
+
+	var self = this;
+
+	User.findById(otherUserId,
+		'followers',
+		function(err, otherUser) {
+			if (err) {
+				return next(err);
+			}
+
+			// is this user even known?
+			if (!otherUser) {
+				return next(null, false);
+			}
+
+			var followers =  otherUser.followers || [];
+
+			// find the index of this user, in the other user's following list
+			var index = indexOfId(followers, self._id);
+
+			// i'm not even a follower of this user
+			if (index === -1) {
+				return next(null, false);
+			}
+
+			var status = followers[index].status;
+
+			// we are only authorized when the user is active, approved and not blocked
+			return next(null, status.active && status.approved && !status.blocked);
+		});
+};
+
+/**
+ * Utility function to add usernames to the following/followers
+
+ * @param {Array}    list Array of people following/followers
+ * @param {Function} next
+ */
 userSchema.statics.addUsername = function(list, next) {
 
 	var ids = listOfIds(list);

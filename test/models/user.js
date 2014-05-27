@@ -317,8 +317,6 @@ describe('User', function() {
 		});
 	});
 
-
-
 	describe('#removeFollowing', function() {
 
 		var myuser, friend;
@@ -390,7 +388,10 @@ describe('User', function() {
 		});
 
 		it('should return an error if the username is not known', function(done) {
-			myuser.removeFollowing(new User({username: 'nonsense', password:'catssss'})._id, function(err) {
+			myuser.removeFollowing(new User({
+				username: 'nonsense',
+				password: 'catssss'
+			})._id, function(err) {
 				err.should.be.an.object;
 				User.findOne({
 					username: 'iandotkelly'
@@ -429,4 +430,144 @@ describe('User', function() {
 		});
 	});
 
+	describe('#isAuthorized', function() {
+
+		var approved, notApproved, blocked, myuser;
+
+		before(function(done) {
+
+			approved = new User({
+				username: 'friend',
+				password: 'othergenius',
+				followers: []
+			});
+
+			notApproved = new User({
+				username: 'notfriend',
+				password: 'othergenius',
+				followers: []
+			});
+
+			blocked = new User({
+				username: 'reallynotfriend',
+				password: 'othergenius',
+				followers: []
+			});
+
+			myuser = new User({
+				username: 'iandotkelly',
+				password: 'genius',
+				followers: [{
+					id: approved._id,
+					status: {
+						active: true,
+						approved: true,
+						blocked: false
+					}
+				}, {
+					id: notApproved._id,
+					status: {
+						active: true,
+						approved: false,
+						blocked: false
+					}
+				}, {
+					id: blocked._id,
+					status: {
+						active: true,
+						approved: false,
+						blocked: true
+					}
+				}],
+				following: []
+			});
+
+			User.remove({
+				username: 'iandotkelly'
+			}, function(err) {
+				if (err) {
+					throw err;
+				}
+				User.remove({
+					username: 'friend'
+				}, function(err) {
+					if (err) {
+						throw err;
+					}
+					User.remove({
+						username: 'notfriend'
+					}, function(err) {
+						if (err) {
+							throw err;
+						}
+						User.remove({
+							username: 'reallynotfriend'
+						}, function(err) {
+							if (err) {
+								throw err;
+							}
+							myuser.save(function(err) {
+								if (err) {
+									throw err;
+								}
+								approved.save(function(err) {
+									if (err) {
+										throw err;
+									}
+									notApproved.save(function(err) {
+										if (err) {
+											throw err;
+										}
+										blocked.save(function(err) {
+											if (err) {
+												throw err;
+											}
+                                            done();
+										});
+									});
+								});
+							});
+						});
+					});
+				});
+			});
+		});
+
+		describe('with an approved user', function() {
+			it('should be approved', function(done) {
+				approved.isAuthorized(myuser._id, function(err, approved) {
+					if (err) {
+						throw err;
+					}
+					approved.should.be.true;
+					done();
+				});
+			});
+		});
+
+
+		describe('with a not approved user', function() {
+			it('should be approved', function(done) {
+				notApproved.isAuthorized(myuser._id, function(err, approved) {
+					if (err) {
+						throw err;
+					}
+					approved.should.be.false;
+					done();
+				});
+			});
+		});
+
+		describe('with a blocked user', function() {
+			it('should be approved', function(done) {
+				blocked.isAuthorized(myuser._id, function(err, approved) {
+					if (err) {
+						throw err;
+					}
+					approved.should.be.false;
+					done();
+				});
+			});
+		});
+	});
 });
