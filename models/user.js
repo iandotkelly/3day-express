@@ -9,20 +9,21 @@
 
 // using mongoose ODM
 var mongoose = require('mongoose');
-	// bcrypt used to store password hashes
+// bcrypt used to store password hashes
 var bcrypt = require('bcrypt');
-
-var indexOfId = require('../lib/indexOfId');
-	// the configuration file
-var config = require('../config'),
-	// constants
-	reasonCodes = require('../lib/constants').reasonCodes,
-	// work factor for password encryption
-	SALT_WORK_FACTOR = 10,
-	db,
-	userSchema,
-	usernameValidation = /^[a-zA-Z0-9_-]{4,20}$/,
-	passwordValidation = /^[^\s]{6,20}$/;
+// id utilities
+var indexOfId = require('../lib/ids').indexOf;
+var listOfIds = require('../lib/ids').listOf;
+// the configuration file
+var config = require('../config');
+// constants
+var reasonCodes = require('../lib/constants').reasonCodes;
+// work factor for password encryption
+var SALT_WORK_FACTOR = 10;
+var db;
+var userSchema;
+var usernameValidation = /^[a-zA-Z0-9_-]{4,20}$/;
+var passwordValidation = /^[^\s]{6,20}$/;
 
 // spoof a mongoose validation error for the password validation
 var passwordValidationError = new Error();
@@ -32,7 +33,6 @@ passwordValidationError.errors = {
 		message: '15002'
 	}
 };
-
 
 var userSchema = mongoose.Schema({
 	// the compulsory authentication fields
@@ -147,6 +147,8 @@ userSchema.methods.setLatest = function(next) {
  */
 userSchema.methods.addFollower = function(user, next) {
 
+	this.followers = this.followers || [];
+
 	// look for the follower in the collection already
 	for (var i = 0; i < this.followers.length; i++) {
 		var follower = this.followers[i];
@@ -175,18 +177,18 @@ userSchema.methods.addFollower = function(user, next) {
  * @param {Object}   user The user to mark as inactive
  * @param {Function} next Callback
  */
-userSchema.methods.removeFollower = function(user, next) {
+userSchema.methods.removeFollower = function(id, next) {
 
-  // get the index of the follower
-  var index = indexOfId(this.followers, user._id)
+	// get the index of the follower
+	var index = indexOfId(this.followers, id);
 
-  // if we don't find them, then just return
-  if (index < 0) {
-    return next();
-  }
+	// if we don't find them, then just return
+	if (index < 0) {
+		return next();
+	}
 
-  // otherwise set active state to false and save
-  this.followers[index].status.active = false;
+	// otherwise set active state to false and save
+	this.followers[index].status.active = false;
 	this.save(next);
 };
 
@@ -209,7 +211,7 @@ userSchema.methods.addFollowing = function(username, next) {
 	User.findOne({
 			username: username
 		},
-		'-__v',
+		'_id',
 		function(err, user) {
 
 			// error when finding user
@@ -225,7 +227,7 @@ userSchema.methods.addFollowing = function(username, next) {
 			}
 
 			// only add the user if its not there already
-			if (self.following.indexOf(user._id) >= 0) {
+			if (indexOfId(self.following, user._id) >= 0) {
 				return next(null, user);
 			}
 
@@ -247,7 +249,6 @@ userSchema.methods.addFollowing = function(username, next) {
 					return next(null, user);
 				});
 			});
-
 		}
 	);
 };
@@ -258,91 +259,52 @@ userSchema.methods.addFollowing = function(username, next) {
  * @param {Srtring}  other The username of the friend
  * @param {Function} next  Callback (err)
  */
-userSchema.methods.deleteFollowing = function(id, next) {
+userSchema.methods.removeFollowing = function(id, next) {
 
 	var self = this;
+	var following = this.following;
+	var index = indexOfId(following, id);
 
-	User.findOne({
-			_id: id
-		},
-		'_id, followers',
-		function(err, following) {
-			if (err) {
-				return next(err);
-			}
+	if (index < 0) {
+		var err = new Error('ID: ' + id + ' + was not being followed');
+		err.name = 'NotFollowing';
+		return next(err);
+	}
 
-			if (!following) {
-				err = new Error('username: ' + following + ' not known');
-				err.name = 'NotKnown';
-				return next(err);
-			}
+	following.splice(index, 1);
 
-			var index = indexOfId(self.following, following._id);
+	this.save(function(err) {
+		if (err) {
+			return next(err);
+		}
 
-			if (index < 0) {
-				err = new Error('username: ' + following + ' was not being followed');
-				err.name = 'NotFollowing';
-				return next(err);
-			}
-
-			self.following.splice(index, 1);
-
-			// we need to mark the person following as inactive
-			following.removeFollower(self, function(err) {
+		User.findById(id,
+			'followers',
+			function(err, following) {
 				if (err) {
 					return next(err);
 				}
-				// finally we should save this
-				self.save(next);
+
+				if (!following) {
+					err = new Error('ID: ' + id + ' not known');
+					err.name = 'NotKnown';
+					return next(err);
+				}
+
+				following.removeFollower(self._id, function(err) {
+                    if (err) {
+                        return next(err);
+                    }
+                    next();
+                });
 			});
 
-		});
-
+	});
 };
 
-/**
- * Returns an array of all associated IDs
- */
-userSchema.methods.allAssociatedIds = function() {
+userSchema.statics.addUsername = function(list, next) {
 
-	var id, index, len;
-	var ids = {};
-
-	// followers
-	for (index = 0, len = this.followers.length; index < len; index++) {
-		id = this.followers[index].id;
-		if (!ids[id]) {
-			ids[id] = true;
-		}
-	}
-
-	// following
-	for (index = 0, len = this.following.length; index < len; index++) {
-		id = this.following[index].id;
-		if (!ids[id]) {
-			ids[id] = true;
-		}
-	}
-
-	// make array from all the object keys
-	var output = [];
-	for (var key in ids) {
-		if (ids.hasOwnProperty(key)) {
-			output.push(key);
-		}
-	}
-
-	return output;
-};
-
-/**
- * Populate the associated users with usernames
-
- * @param {Function} next Callback
- */
-userSchema.methods.populateAssociated = function(next) {
-
-	var ids = this.allAssociatedIds();
+	var ids = listOfIds(list);
 
 	if (ids.length === 0) {
 		return next();
@@ -354,35 +316,27 @@ userSchema.methods.populateAssociated = function(next) {
 			},
 		},
 		'_id, username',
-		function(err, associates) {
+		function(err, users) {
 			if (err) {
 				return next(err);
 			}
 
 			// iterate over all the users
-			for (var associateIndex = 0, associatesLen = associates.length; associateIndex < associatesLen; associateIndex++) {
-				var associate = associates[associateIndex];
+			for (var userIndex = 0, usersLen = users.length; userIndex < usersLen; userIndex++) {
+				var user = users[userIndex];
 
-				for (var index = 0, len = this.followers.index; index < len; index++) {
-					var follower = this.followers[index];
-					if (associates._id.equals(follower.id)) {
-						follower.username = associate.username;
-						break;
-					}
-				}
-
-				for (index = 0, len = this.following.index; index < len; index--) {
-					var following = this.following[index];
-					if (associates._id.equals(following.id)) {
-						following.username = associate.username;
+				for (var index = 0, len = list.length; index < len; index++) {
+					var item = list[index];
+					if (user._id.equals(item.id)) {
+						item.username = user.username;
 						break;
 					}
 				}
 			}
-			next();
+
+			next(null, list);
 		});
 };
-
 
 /**
  * Validation Methods
@@ -434,7 +388,7 @@ userSchema.pre('save', function(next) {
 
 db.on('error', function(err) {
 	// @todo something more elegant than log to console
-	console.log(err);
+	console.error(err);
 });
 
 // we are exporting the mongoose model

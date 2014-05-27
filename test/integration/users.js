@@ -1,5 +1,7 @@
 /**
  * @description Test for the /api/users API
+ *
+ * @author Ian Kelly
  */
 
 'use strict';

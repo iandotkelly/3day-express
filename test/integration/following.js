@@ -6,7 +6,7 @@
 
 var request = require('supertest');
 var should = require('should');
-
+var ObjectId = require('mongoose').Types.ObjectId;
 var app = require('../../app.js'); // this starts the server
 var User = require('../../models').User;
 
@@ -138,7 +138,6 @@ describe('The following API', function() {
 			});
 
 			it('should return the users in an array', function(done) {
-
 				request(app)
 					.get('/api/following')
 					.set('3day-app', 'test')
@@ -147,8 +146,6 @@ describe('The following API', function() {
 						should(err).be.not.an.object;
 						res.body.should.be.an.array;
 						res.body.length.should.be.equal(1);
-                        console.log(res.body);
-                        console.log(friend1);
 						res.body[0].username.should.be.equal('friend1');
 						done();
 					});
@@ -226,15 +223,15 @@ describe('The following API', function() {
 				}, function(err, user) {
 					user.following.should.be.an.array;
 					user.following.length.should.be.equal(2);
-					user.following[0].toString().should.be.equal(friend1._id.toString());
-					user.following[1].toString().should.be.equal(friend2._id.toString());
+					(user.following[0].id.equals(friend1._id)).should.be.true;
+					(user.following[1].id.equals(friend2._id)).should.be.true;
 					done();
 				});
 			});
 		});
 	});
 
-	describe('DELETE /api/following/:username', function() {
+	describe('DELETE /api/following/:id', function() {
 
 		describe('with no user', function() {
 
@@ -251,7 +248,7 @@ describe('The following API', function() {
 
 			it('should return a 404', function(done) {
 				request(app)
-					.del('/api/following/nonsense')
+					.del('/api/following/' + new ObjectId())
 					.set('3day-app', 'test')
 					.auth('friendintegration', 'catsss')
 					.expect(404, done);
@@ -259,7 +256,7 @@ describe('The following API', function() {
 
 			it('should return an error response', function(done) {
 				request(app)
-					.del('/api/following/nonsense')
+					.del('/api/following/' + new ObjectId())
 					.set('3day-app', 'test')
 					.auth('friendintegration', 'catsss')
 					.end(function(err, res) {
@@ -275,7 +272,7 @@ describe('The following API', function() {
 
 			it('should return an success response', function(done) {
 				request(app)
-					.del('/api/following/friend1')
+					.del('/api/following/' + friend1._id.toString())
 					.set('3day-app', 'test')
 					.auth('friendintegration', 'catsss')
 					.end(function(err, res) {
@@ -291,9 +288,22 @@ describe('The following API', function() {
 				User.findOne({
 					username: 'friendintegration'
 				}, function(err, user) {
+					should(err).not.be.an.object;
 					user.following.should.be.an.array;
+					// should only have friend 2
 					user.following.length.should.be.equal(1);
-					user.following[0].toString().should.be.equal(friend2._id.toString());
+					user.following[0].id.toString().should.be.equal(friend2._id.toString());
+					// and we should be marked as non active
+					User.findOne({
+						username: 'friend1'
+					}, function(err, friend) {
+						should(err).not.be.an.object;
+						friend.followers.length.should.be.equal(1);
+						friend.followers[0].id.toString().should.be.equal(user._id.toString());
+						friend.followers[0].status.active.should.be.false;
+						friend.followers[0].status.blocked.should.be.false;
+						friend.followers[0].status.approved.should.be.true;
+					});
 					done();
 				});
 			});

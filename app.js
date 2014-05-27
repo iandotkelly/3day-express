@@ -77,7 +77,7 @@ app.get('/api/users', authenticate(), routes.users.retrieve);
 // Following
 app.get('/api/following', authenticate(), routes.following.retrieve);
 app.post('/api/following/:username', authenticate(), routes.following.create);
-app.delete('/api/following/:username', authenticate(), routes.following.remove);
+app.delete('/api/following/:id', authenticate(), routes.following.remove);
 // Followers
 
 // Reports

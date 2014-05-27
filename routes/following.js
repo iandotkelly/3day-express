@@ -7,6 +7,8 @@
 'use strict';
 
 var httpStatus = require('http-status');
+var ObjectId = require('mongoose').Types.ObjectId;
+var User = require('../models/user');
 
 /**
  * Add a person you are following
@@ -17,7 +19,7 @@ function create(req, res, next) {
 
 		if (err) {
 			if (err.name === 'NotFound') {
-				// ok - so we don't know this friend
+				// ok - so we don't know this person
 				return res.json(httpStatus.NOT_FOUND, {
 					status: 'failed',
 					message: 'Not found'
@@ -40,18 +42,35 @@ function create(req, res, next) {
 /**
  * Retrieve a list of all the people a user is following
  */
-function retrieve(req, res) {
-    console.log('&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&');
-    console.log(req.user.following);
-	return res.json(httpStatus.OK, req.user.following);
+function retrieve(req, res, next) {
+
+	var user = req.user.toObject();
+	// add usernames
+	User.addUsername(user.following || [], function(err) {
+		if (err) {
+			return next(err);
+		}
+		return res.json(httpStatus.OK, user.following);
+	});
 }
 
 /**
- * Remove a friend
+ * Remove someone we are following
  */
 function remove(req, res, next) {
 
-	req.user.deleteFollowing(req.params.username, function(err) {
+	var id;
+	try {
+		id = new ObjectId(req.params.id);
+	} catch (err) {
+		// this isn't a valid ID
+		return res.json(httpStatus.BAD_REQUEST, {
+			status: 'failed',
+			message: 'Invalid ID format'
+		});
+	}
+
+	req.user.removeFollowing(id, function(err) {
 		if (err) {
 			if (err.name === 'NotFollowing' || err.name === 'NotKnown') {
 				// ok - so we don't know this user
