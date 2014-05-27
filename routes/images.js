@@ -26,7 +26,7 @@ grid.mongo = mongoose.mongo;
 
 // creaete connection
 var connection = mongoose.createConnection(config.database);
-connection.once('open', function () {
+connection.once('open', function() {
 	gfs = grid(connection.db);
 });
 
@@ -54,12 +54,14 @@ function completeUpload(uploadState, res, next) {
 	// after we discover a problem - only way I could
 	// find of doing this
 	function deleteFileEventually(id) {
-		setTimeout(function () {
+		setTimeout(function() {
 			// remove with an empty callback as
 			// to be honest, we don't care, this
 			// an exception, and can be cleaned up later if
 			// needed
-			gfs.remove({_id: id }, function () {});
+			gfs.remove({
+				_id: id
+			}, function() {});
 		}, 3000);
 
 	}
@@ -103,7 +105,7 @@ function completeUpload(uploadState, res, next) {
 	});
 
 	// save the report
-	uploadState.report.save(function (err) {
+	uploadState.report.save(function(err) {
 		if (err) {
 			return next(err);
 		}
@@ -154,7 +156,7 @@ function create(req, res, next) {
 	});
 
 	// Stream the file
-	busboy.on('file', function (fieldname, file, filename, encoding, mimetype) {
+	busboy.on('file', function(fieldname, file, filename, encoding, mimetype) {
 
 		var config = {
 			mode: 'w',
@@ -174,7 +176,7 @@ function create(req, res, next) {
 	});
 
 	// Process non file field
-	busboy.on('field', function (key, value) {
+	busboy.on('field', function(key, value) {
 
 		// record that a non-file field was detected
 		uploadState.fieldDetected = true;
@@ -205,29 +207,29 @@ function create(req, res, next) {
 		// retrieve the report
 		reportRetrievalOngoing = true;
 		Report.findOne({
-			_id: value.reportid,
-			userid: req.user._id
-		},
-		function (err, foundReport) {
-			if (err) {
-				return next(err);
-			}
-			// ok the report retrieval has
-			// completed for better or worse
-			reportRetrievalOngoing = false;
-			uploadState.report = foundReport;
+				_id: value.reportid,
+				userid: req.user._id
+			},
+			function(err, foundReport) {
+				if (err) {
+					return next(err);
+				}
+				// ok the report retrieval has
+				// completed for better or worse
+				reportRetrievalOngoing = false;
+				uploadState.report = foundReport;
 
-			// if this callback occurs last, we
-			// should call the completeUpload method
-			// to finish off
-			if (requestProcessingComplete) {
-				return completeUpload(uploadState, res, next);
-			}
-		});
+				// if this callback occurs last, we
+				// should call the completeUpload method
+				// to finish off
+				if (requestProcessingComplete) {
+					return completeUpload(uploadState, res, next);
+				}
+			});
 	});
 
 	// Process end of request
-	busboy.on('finish', function () {
+	busboy.on('finish', function() {
 
 		// record the request processing has been
 		// completed
@@ -266,7 +268,7 @@ function retrieve(req, res, next) {
 	// find the file
 	gfs.files.findOne({
 		_id: id
-	}, function (err, file) {
+	}, function(err, file) {
 		if (err) {
 			return next(err);
 		}
@@ -280,17 +282,19 @@ function retrieve(req, res, next) {
 		}
 
 		// if unauthorized
-		if (file.metadata.user.toString() !== user._id.toString()) {
-			// this file is not owned by the user
-			return res.json(httpStatus.UNAUTHORIZED, {
-				status: 'failed',
-				message: 'Unauthorized'
-			});
-		}
-
-		// ok - we can stream this file
-		res.setHeader('content-type', file.contentType);
-		gfs.createReadStream({_id: id}).pipe(res);
+		user.isAuthorized(file.metadata.user, function(err, authorized) {
+			if (!authorized) {
+				return res.json(httpStatus.UNAUTHORIZED, {
+					status: 'failed',
+					message: 'Unauthorized'
+				});
+			}
+			// ok - we can stream this file
+			res.setHeader('content-type', file.contentType);
+			gfs.createReadStream({
+				_id: id
+			}).pipe(res);
+		});
 	});
 }
 
@@ -306,7 +310,7 @@ function remove(req, res, next) {
 	// ensure the user owns the file
 	gfs.files.findOne({
 		_id: req.param.id
-	}, function (err, file) {
+	}, function(err, file) {
 		if (err) {
 			return next(err);
 		}
@@ -322,7 +326,9 @@ function remove(req, res, next) {
 		// need to also remove from the report
 	});
 
-	gfs.remove({_id: req.params.id}, function (err) {
+	gfs.remove({
+		_id: req.params.id
+	}, function(err) {
 		if (err) {
 			return next(err);
 		}
@@ -338,4 +344,3 @@ module.exports = {
 	retrieve: retrieve,
 	remove: remove
 };
-
