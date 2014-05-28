@@ -1,9 +1,9 @@
-/**
- * @description Model for User
- *
- * @author Ian Kelly
- * @copyright Copyright (C) Ian Kelly
- */
+//
+// @description Model for User
+//
+// @author Ian Kelly
+// @copyright Copyright (C) Ian Kelly
+//
 
 'use strict';
 
@@ -95,13 +95,13 @@ var userSchema = mongoose.Schema({
 });
 
 /**
- * Compares a password
- *
- * @param  {String}   password The candidate password
- * @param  {Function} next     Callback (err, isMatch)
- */
-userSchema.methods.validatePassword = function(password, next) {
-	bcrypt.compare(password, this.password, function(err, isMatch) {
+* Compares a password
+*
+* @param  {String}   password The candidate password
+* @param  {Function} next     Callback (err, isMatch)
+*/
+userSchema.methods.validatePassword = function (password, next) {
+	bcrypt.compare(password, this.password, function (err, isMatch) {
 		if (err) {
 			return next(err);
 		}
@@ -110,11 +110,11 @@ userSchema.methods.validatePassword = function(password, next) {
 };
 
 /**
- * Sets the latest change to the user's data
- *
- * @param {Function} next Callback (err)
- */
-userSchema.methods.setLatest = function(next) {
+* Sets the latest change to the user's data
+*
+* @param {Function} next Callback (err)
+*/
+userSchema.methods.setLatest = function (next) {
 
 	// set the object's latest to now
 	var now = Date.now();
@@ -124,7 +124,7 @@ userSchema.methods.setLatest = function(next) {
 	// the property in the document
 	this.update({
 		latest: now
-	}, function(err, numberAffected) {
+	}, function (err, numberAffected) {
 		if (err) {
 			return next(err);
 		}
@@ -140,12 +140,12 @@ userSchema.methods.setLatest = function(next) {
 };
 
 /**
- * Add a follower
+* Add a follower
 
- * @param {Object}   user The user to add as a follower
- * @param {Function} next Callback
- */
-userSchema.methods.addFollower = function(user, next) {
+* @param {Object}   user The user to add as a follower
+* @param {Function} next Callback
+*/
+userSchema.methods.addFollower = function (user, next) {
 
 	this.followers = this.followers || [];
 
@@ -172,12 +172,12 @@ userSchema.methods.addFollower = function(user, next) {
 };
 
 /**
- * Remove a follower - i.e. mark as inactive
- *
- * @param {Object}   user The user to mark as inactive
- * @param {Function} next Callback
- */
-userSchema.methods.removeFollower = function(id, next) {
+* Remove a follower - i.e. mark as inactive
+*
+* @param {Object}   user The user to mark as inactive
+* @param {Function} next Callback
+*/
+userSchema.methods.removeFollower = function (id, next) {
 
 	// get the index of the follower
 	var index = indexOfId(this.followers, id);
@@ -193,13 +193,13 @@ userSchema.methods.removeFollower = function(id, next) {
 };
 
 /**
- * Add a following by user-id
- *
- * @param {String}   other      The username of the new person to follow
- * @param {Object}   status     The status flags of the user
- * @param {Function} next       Callback (err)
- */
-userSchema.methods.addFollowing = function(username, next) {
+* Add a following by user-id
+*
+* @param {String}   other      The username of the new person to follow
+* @param {Object}   status     The status flags of the user
+* @param {Function} next       Callback (err)
+*/
+userSchema.methods.addFollowing = function (username, next) {
 
 	if (typeof username !== 'string') {
 		return next(new Error('username should be a string'));
@@ -212,7 +212,7 @@ userSchema.methods.addFollowing = function(username, next) {
 			username: username
 		},
 		'_id',
-		function(err, user) {
+		function (err, user) {
 
 			// error when finding user
 			if (err) {
@@ -232,7 +232,7 @@ userSchema.methods.addFollowing = function(username, next) {
 			}
 
 			// add us to the user's followers
-			user.addFollower(self, function(err) {
+			user.addFollower(self, function (err) {
 				if (err) {
 					return next(err);
 				}
@@ -242,7 +242,7 @@ userSchema.methods.addFollowing = function(username, next) {
 					id: user._id
 				});
 
-				self.save(function(err) {
+				self.save(function (err) {
 					if (err) {
 						return next(err);
 					}
@@ -254,12 +254,12 @@ userSchema.methods.addFollowing = function(username, next) {
 };
 
 /**
- * Delete a follower by user-id
- *
- * @param {Srtring}  other The username of the friend
- * @param {Function} next  Callback (err)
- */
-userSchema.methods.removeFollowing = function(id, next) {
+* Delete a follower by user-id
+*
+* @param {Srtring}  other The username of the friend
+* @param {Function} next  Callback (err)
+*/
+userSchema.methods.removeFollowing = function (id, next) {
 
 	var self = this;
 	var following = this.following;
@@ -273,14 +273,14 @@ userSchema.methods.removeFollowing = function(id, next) {
 
 	following.splice(index, 1);
 
-	this.save(function(err) {
+	this.save(function (err) {
 		if (err) {
 			return next(err);
 		}
 
 		User.findById(id,
 			'followers',
-			function(err, following) {
+			function (err, following) {
 				if (err) {
 					return next(err);
 				}
@@ -291,7 +291,7 @@ userSchema.methods.removeFollowing = function(id, next) {
 					return next(err);
 				}
 
-				following.removeFollower(self._id, function(err) {
+				following.removeFollower(self._id, function (err) {
 					if (err) {
 						return next(err);
 					}
@@ -303,24 +303,24 @@ userSchema.methods.removeFollowing = function(id, next) {
 };
 
 /**
- * Whether this user is approved to access a resource of
- * another user
- *
- * @param {user}   otherUserId The ObjectId of the other user
- * @param {Function} next      Callback
- */
-userSchema.methods.isAuthorized = function(otherUserId, next) {
+* Whether this user is approved to access a resource of
+* another user
+*
+* @param {user}   otherUserId The ObjectId of the other user
+* @param {Function} next      Callback
+*/
+userSchema.methods.isAuthorized = function (otherUserId, next) {
 
-    // by definition we are authorized to view our own stuff
-    if (this._id.equals(otherUserId)) {
-        return next(null, true);
-    }
+	// by definition we are authorized to view our own stuff
+	if (this._id.equals(otherUserId)) {
+		return next(null, true);
+	}
 
 	var self = this;
 
 	User.findById(otherUserId,
 		'followers',
-		function(err, otherUser) {
+		function (err, otherUser) {
 			if (err) {
 				return next(err);
 			}
@@ -348,12 +348,48 @@ userSchema.methods.isAuthorized = function(otherUserId, next) {
 };
 
 /**
- * Utility function to add usernames to the following/followers
+* Returns an array of IDs of users I am authorized to follow
+*
+* @param {Array}	shortList	Optional list of IDs
+*/
+userSchema.methods.allAuthorized = function (shortList, next) {
 
- * @param {Array}    list Array of people following/followers
- * @param {Function} next
- */
-userSchema.statics.addUsername = function(list, next) {
+	if (typeof shortList === 'function') {
+		next = shortList;
+		shortList = undefined;
+	}
+
+	// get list of IDs of users we are following
+	var followingIds = listOfIds(this.following, {shortList: shortList});
+
+	User.find({
+		'_id': {
+			$in: followingIds
+		},
+		'followers.id': this._id,
+		'followers.status.approved': true,
+		'followers.status.blocked': false
+	},
+	'_id',
+	function (err, docs) {
+		if (err) {
+			return next(err);
+		}
+
+		var foundIds = listOfIds(docs, {idName: '_id'});
+
+		return next(null, foundIds);
+	});
+
+};
+
+/**
+* Utility function to add usernames to the following/followers
+*
+* @param {Array}    list Array of people following/followers
+* @param {Function} next
+*/
+userSchema.statics.addUsername = function (list, next) {
 
 	var ids = listOfIds(list);
 
@@ -367,7 +403,7 @@ userSchema.statics.addUsername = function(list, next) {
 			},
 		},
 		'_id, username',
-		function(err, users) {
+		function (err, users) {
 			if (err) {
 				return next(err);
 			}
@@ -390,11 +426,10 @@ userSchema.statics.addUsername = function(list, next) {
 };
 
 /**
- * Validation Methods
- */
-
+* Validation Methods
+*/
 // Ensure username is adequate length and characters
-userSchema.path('username').validate(function(value) {
+userSchema.path('username').validate(function (value) {
 	return usernameValidation.test(value);
 }, reasonCodes.USERNAME_INVALID.toString());
 
@@ -404,9 +439,9 @@ mongoose.connect(config.database);
 db = mongoose.connection;
 
 /**
- * Perform some pre-save implementation
- */
-userSchema.pre('save', function(next) {
+* Perform some pre-save implementation
+*/
+userSchema.pre('save', function (next) {
 	var user = this;
 
 	// refresh the updated property
@@ -421,12 +456,12 @@ userSchema.pre('save', function(next) {
 		return next(passwordValidationError);
 	}
 
-	bcrypt.genSalt(SALT_WORK_FACTOR, function(err, salt) {
+	bcrypt.genSalt(SALT_WORK_FACTOR, function (err, salt) {
 		if (err) {
 			return next(err);
 		}
 
-		bcrypt.hash(user.password, salt, function(err, hash) {
+		bcrypt.hash(user.password, salt, function (err, hash) {
 			if (err) {
 				return next(err);
 			}
@@ -437,7 +472,7 @@ userSchema.pre('save', function(next) {
 });
 
 
-db.on('error', function(err) {
+db.on('error', function (err) {
 	// @todo something more elegant than log to console
 	console.error(err);
 });

@@ -78,7 +78,6 @@ app.get('/api/users', authenticate(), routes.users.retrieve);
 app.get('/api/following', authenticate(), routes.following.retrieve);
 app.post('/api/following/:username', authenticate(), routes.following.create);
 app.delete('/api/following/:id', authenticate(), routes.following.remove);
-// Followers
 
 // Reports
 app.post('/api/reports', authenticate(), routes.reports.create);
@@ -89,7 +88,7 @@ app.delete('/api/reports/:id', authenticate(), routes.reports.remove);
 app.post('/api/reports/:id', authenticate(), routes.reports.update);
 // Report timeline
 app.post('/api/timeline/:time/:number', authenticate(), routes.timeline.bypage);
-app.post('/api/timeline/from/:time/to/:time', authenticate(), routes.timeline.bytime);
+app.post('/api/timeline/from/:timefrom/to/:timeto', authenticate(), routes.timeline.bytime);
 // Images
 app.get('/api/image/:id', authenticate(), routes.images.retrieve);
 app.post('/api/image', authenticate(), routes.images.create);

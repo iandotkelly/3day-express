@@ -75,9 +75,11 @@ describe('indexOf', function() {
 describe('listOf', function() {
 
 	describe('if not passed an array', function() {
-		it('should return an empty array', function() {
-			listOf().should.be.an.array;
-			listOf().length.should.be.equal(0);
+		it('should throw', function() {
+            /* jshint -W068 */
+            (function () {
+                listOf();
+            }).should.throw;
 		});
 	});
 

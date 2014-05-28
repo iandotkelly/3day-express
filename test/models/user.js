@@ -4,8 +4,9 @@
 
 'use strict';
 
-var User = require('../../models').User,
-	should = require('should');
+var User = require('../../models').User;
+var should = require('should');
+var eachSeries = require('async').eachSeries;
 
 describe('User', function() {
 
@@ -565,6 +566,154 @@ describe('User', function() {
 						throw err;
 					}
 					approved.should.be.false;
+					done();
+				});
+			});
+		});
+	});
+
+	describe('#allAuthorized', function () {
+
+		var user, followingA1, followingA2, followingNA1, followingB1;
+
+		before(function (done) {
+
+			user = new User({username: 'iandotkelly', password: 'catsss'});
+
+			followingA1 = new User({
+				username: 'followingA1',
+				password: 'catsss',
+				followers: [{
+					id: user._id,
+					status: {
+						active: true,
+						blocked: false,
+						approved: true
+					}
+				}]
+			});
+
+			followingA2 = new User({
+				username: 'followingA2',
+				password: 'catsss',
+				followers: [{
+					id: user._id,
+					status: {
+						active: true,
+						blocked: false,
+						approved: true
+					}
+				}]
+			});
+
+			followingNA1 = new User({
+				username: 'followingNA1',
+				password: 'catsss',
+				followers: [{
+					id: user._id,
+					status: {
+						active: true,
+						blocked: false,
+						approved: false
+					}
+				}]
+			});
+
+			followingB1 = new User({
+				username: 'followingB1',
+				password: 'catsss',
+				followers: [{
+					id: user._id,
+					status: {
+						active: true,
+						blocked: true,
+						approved: true
+					}
+				}]
+			});
+
+			user.following.push({id:followingA1._id},
+				{id:followingA2._id},
+				{id:followingNA1._id},
+				{id:followingB1._id}
+			);
+
+			var users = [
+				user,
+				followingA1,
+				followingA2,
+				followingNA1,
+				followingB1
+			];
+
+			eachSeries(users, function(user, cb) {
+				User.remove({
+					username: user.username
+				}, function (err) {
+					cb(err);
+				});
+			}, function (err) {
+				if (err) {
+					throw err;
+				}
+				eachSeries(users, function(user, cb) {
+					user.save(function (err) {
+						cb(err);
+					});
+				}, function (err) {
+					if (err) {
+						throw err;
+					}
+					done();
+				});
+			});
+		});
+
+		after(function (done) {
+
+			var users = [
+				user,
+				followingA1,
+				followingA2,
+				followingNA1,
+				followingB1
+			];
+
+			eachSeries(users, function(user, cb) {
+				user.remove(function (err) {
+					cb(err);
+				});
+			}, function (err) {
+				if (err) {
+					throw err;
+				}
+				done();
+			});
+		});
+
+		describe('with no shortlist', function () {
+
+			it('should return 2 approved', function (done) {
+				user.allAuthorized(function (err, ids) {
+					should(err).not.be.an.object;
+					ids.should.be.an.array;
+					ids.length.should.be.equal(2);
+					(ids[0].equals(followingA1._id)).should.be.true;
+					(ids[1].equals(followingA2._id)).should.be.true;
+					done();
+				});
+			});
+		});
+
+
+		describe('with a shortlist', function () {
+
+			it('should return 1 approved', function (done) {
+				user.allAuthorized([followingA2._id], function (err, ids) {
+					should(err).not.be.an.object;
+					ids.should.be.an.array;
+					ids.length.should.be.equal(1);
+					(ids[0].equals(followingA2._id)).should.be.true;
 					done();
 				});
 			});
