@@ -354,13 +354,17 @@ userSchema.methods.isAuthorized = function (otherUserId, next) {
 */
 userSchema.methods.allAuthorized = function (shortList, next) {
 
+	var ourId = this._id;
+
 	if (typeof shortList === 'function') {
 		next = shortList;
 		shortList = undefined;
 	}
 
 	// get list of IDs of users we are following
-	var followingIds = listOfIds(this.following, {shortList: shortList});
+	var followingIds = listOfIds(this.following, {
+		shortList: shortList
+	});
 
 	User.find({
 		'_id': {
@@ -377,6 +381,11 @@ userSchema.methods.allAuthorized = function (shortList, next) {
 		}
 
 		var foundIds = listOfIds(docs, {idName: '_id'});
+
+		// add ourselves
+		if (!shortList) {
+			foundIds.push(ourId);
+		}
 
 		return next(null, foundIds);
 	});

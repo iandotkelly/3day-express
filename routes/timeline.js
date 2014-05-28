@@ -37,8 +37,9 @@ function byTime(req, res, next) {
 			$lte: timeTo
 		}
 	})
+	.select('-__v -_id -updated')
 	.sort('-date')
-	.limit(1000)
+	.limit(5000)	// put a sensible big upper limit - don't want to stress things
 	.exec(function (err, docs) {
 		if (err) {
 			return next(err);
@@ -48,13 +49,15 @@ function byTime(req, res, next) {
 	});
 }
 
-
-//app.post('/api/timeline/:time/:number', authenticate(), routes.timeline.bypage);
-// real time
+/**
+* Get reports by server timeline
+*
+* POST /api/timeline/:time/:number
+*/
 function byPage(req, res, next) {
 
-	var time = req.params.time;
-	var number = req.params.number;
+	var time = req.params.time || new Date();
+	var number = req.params.number || 100;
 	var user = req.user;
 
 	var shortList;
@@ -63,24 +66,26 @@ function byPage(req, res, next) {
 		shortList = req.body;
 	}
 
-	var followingIds = user.allAuthorized(shortList);
+	user.allAuthorized(shortList, function (err, followingIds) {
 
-	Report.find({
-		'userid': {
-			$in: followingIds
-		},
-		'created': {
-			$lte: time
-		}
-	})
-	.sort('-date')
-	.limit(number)
-	.exec(function (err, docs) {
-		if (err) {
-			return next(err);
-		}
+		Report.find({
+			'userid': {
+				$in: followingIds
+			},
+			'created': {
+				$lte: new Date(time)
+			}
+		})
+		.select('-__v -_id -updated')
+		.sort('-created')
+		.limit(number)
+		.exec(function (err, docs) {
+			if (err) {
+				return next(err);
+			}
 
-		return res.json(httpStatus.OK, docs);
+			return res.json(httpStatus.OK, docs);
+		});
 	});
 }
 
