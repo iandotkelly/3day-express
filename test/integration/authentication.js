@@ -49,11 +49,16 @@ describe('With incorrect password', function () {
 			username: 'testapi',
 			password: 'genius'
 		});
-		testUser.save(function (err) {
+		User.remove({username: 'testapi'}, function(err) {
 			if (err) {
 				throw err;
 			}
-			done();
+			testUser.save(function (err) {
+				if (err) {
+					throw err;
+				}
+				done();
+			});
 		});
 	});
 
