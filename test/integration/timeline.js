@@ -178,6 +178,67 @@ describe('POST /api/timeline', function() {
 		});
 	});
 
+	describe('with a start time and end time between reports', function() {
+
+		it('should return nothing', function (done) {
+
+			request(app)
+				.post('/api/timeline/from/2014-05-28T14:46:10/to/2014-05-28T14:46:50')
+				.set('3day-app', 'test')
+				.auth('iandotkelly', 'catsss')
+				.end(function (err, res) {
+					should(err).not.be.an.object;
+					res.body.should.be.an.array;
+					res.body.length.should.be.equal(0);
+					done();
+				});
+		});
+	});
+
+
+	describe('with a start time and end time around one report', function() {
+
+		it('should return the one report', function (done) {
+
+			request(app)
+				.post('/api/timeline/from/2014-05-28T11:46:50/to/2014-05-28T11:47:10')
+				.set('3day-app', 'test')
+				.auth('iandotkelly', 'catsss')
+				.end(function (err, res) {
+					should(err).not.be.an.object;
+					res.body.should.be.an.array;
+					res.body.length.should.be.equal(1);
+					res.body[0].userid.should.equal(fB._id.toString());
+					done();
+				});
+		});
+	});
+
+
+	describe('with a start time and end time around all the reports', function() {
+
+		it('should return only the authorized reports in order', function (done) {
+
+			request(app)
+				.post('/api/timeline/from/2014-05-28T11:00:00/to/2014-05-28T20:00:00')
+				.set('3day-app', 'test')
+				.auth('iandotkelly', 'catsss')
+				.end(function (err, res) {
+					should(err).not.be.an.object;
+					res.body.should.be.an.array;
+					res.body.length.should.be.equal(6);
+					res.body[0].userid.should.equal(fA._id.toString());
+					res.body[1].userid.should.equal(fA._id.toString());
+					res.body[2].userid.should.equal(user._id.toString());
+					res.body[3].userid.should.equal(user._id.toString());
+					res.body[4].userid.should.equal(fB._id.toString());
+					res.body[5].userid.should.equal(fB._id.toString());
+					done();
+				});
+		});
+	});
+
+
 	describe('with a start time after all the reports and a big limit', function() {
 
 		it('should do return all the authorized reports', function (done) {

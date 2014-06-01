@@ -16,8 +16,8 @@ var httpStatus = require('http-status');
 */
 function byTime(req, res, next) {
 
-	var timeFrom = new Date(req.params.timeFrom);
-	var timeTo = new Date(req.params.timeTo);
+	var timeFrom = new Date(req.params.timefrom);
+	var timeTo = new Date(req.params.timeto);
 	var user = req.user;
 
 	var shortList;
@@ -26,26 +26,30 @@ function byTime(req, res, next) {
 		shortList = req.body;
 	}
 
-	var followingIds = user.allAuthorized(shortList);
-
-	Report.find({
-		'userid': {
-			$in: followingIds
-		},
-		'date': {
-			$gte: timeFrom,
-			$lte: timeTo
-		}
-	})
-	.select('-__v -_id -updated')
-	.sort('-date')
-	.limit(5000)	// put a sensible big upper limit - don't want to stress things
-	.exec(function (err, docs) {
+	user.allAuthorized(shortList, function (err, followingIds) {
 		if (err) {
 			return next(err);
 		}
 
-		return res.json(httpStatus.OK, docs);
+		Report.find({
+			'userid': {
+				$in: followingIds
+			},
+			'date': {
+				$gte: timeFrom,
+				$lte: timeTo
+			}
+		})
+		.select('-__v -_id -updated')
+		.sort('-date')
+		.limit(5000)	// put a sensible big upper limit - don't want to stress things
+		.exec(function (err, docs) {
+			if (err) {
+				return next(err);
+			}
+
+			return res.json(httpStatus.OK, docs);
+		});
 	});
 }
 
