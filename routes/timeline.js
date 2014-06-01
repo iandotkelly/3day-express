@@ -56,7 +56,8 @@ function byTime(req, res, next) {
 */
 function byPage(req, res, next) {
 
-	var time = req.params.time || new Date();
+	var time = req.params.time;
+	time = time === '0' ? new Date() : time;
 	var number = req.params.number || 100;
 	var user = req.user;
 
