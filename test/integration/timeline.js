@@ -202,8 +202,6 @@ describe('POST /api/timeline', function() {
 				});
 		});
 
-
-
 		describe('except when it has a shortlist', function() {
 
 			it('when it should only return shortlisted users reports', function (done) {
@@ -224,11 +222,8 @@ describe('POST /api/timeline', function() {
 						done();
 					});
 			});
-
 		});
-
 	});
-
 
 	describe('with a start time after all the reports and a limit of 2', function() {
 

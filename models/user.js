@@ -382,7 +382,8 @@ userSchema.methods.allAuthorized = function (shortList, next) {
 
 		var foundIds = listOfIds(docs, {idName: '_id'});
 
-		// add ourselves
+		// add ourselves - but only if there is not
+		// a shortlist
 		if (!shortList) {
 			foundIds.push(ourId);
 		}

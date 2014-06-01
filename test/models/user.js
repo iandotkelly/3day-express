@@ -693,13 +693,14 @@ describe('User', function() {
 
 		describe('with no shortlist', function () {
 
-			it('should return 2 approved', function (done) {
+			it('should return 3 approved', function (done) {
 				user.allAuthorized(function (err, ids) {
 					should(err).not.be.an.object;
 					ids.should.be.an.array;
-					ids.length.should.be.equal(2);
+					ids.length.should.be.equal(3);
 					(ids[0].equals(followingA1._id)).should.be.true;
 					(ids[1].equals(followingA2._id)).should.be.true;
+					(ids[2].equals(user._id)).should.be.true;
 					done();
 				});
 			});

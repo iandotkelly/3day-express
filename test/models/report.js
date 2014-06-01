@@ -136,32 +136,6 @@ describe('Report', function () {
 
 		});
 
-
-		describe('with a username filter and a skip and limit of 1',
-			function () {
-
-				it('should return the middle report in db order', function (done) {
-
-					Report.find(
-						{
-							userid: fakeUserId
-						}, null,
-						{
-							skip: 1,
-							limit: 1
-						},
-						function (err, reports) {
-							reports.length.should.equal(1);
-							// should return the middle report as added to mongo
-							reports[0].date.getTime().should.equal((new Date('July 15, 2012')).getTime());
-							done();
-						});
-				});
-
-			});
-
-
-
 		describe('with a username filter and a skip and limit of 1 and in reverse date order',
 			function () {
 
