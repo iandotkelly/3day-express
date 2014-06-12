@@ -177,7 +177,18 @@ function retrieve(req, res, next) {
 		}
 
 		user.reportCount = count;
-		res.send(httpStatus.OK, user);
+
+		// retrieve follower names
+		User.addUsername(user.followers, function(err, list) {
+			if (err) {
+				return next(err);
+			}
+
+			user.followers = list;
+
+			res.send(httpStatus.OK, user);
+		});
+
 	});
 }
 
