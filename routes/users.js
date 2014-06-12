@@ -59,7 +59,7 @@ function update(req, res, next) {
 
 	// the update needs to have either an updated username
 	// or an updated password
-	if (!body || (!body.username && !body.password)) {
+	if (!body || (!body.username && !body.password) || !body.followers) {
 		return res.send(httpStatus.BAD_REQUEST, {
 			reason: reasonCodes.BAD_SYNTAX,
 			message: 'Bad request'
@@ -72,6 +72,10 @@ function update(req, res, next) {
 
 	if (body.password) {
 		user.password = body.password;
+	}
+
+	if (body.followers) {
+		user.followers = body.followers;
 	}
 
 	user.save(function (err) {
