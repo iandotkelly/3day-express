@@ -157,7 +157,8 @@ function retrieve(req, res, next) {
 		id: reqUser._id,
 		username: reqUser.username,
 		following: reqUser.following,
-		followers: reqUser.followers
+		followers: reqUser.followers,
+		autoApprove: reqUser.autoApprove
 	};
 
 	// retrieve report count
