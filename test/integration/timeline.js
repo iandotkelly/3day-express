@@ -238,7 +238,6 @@ describe('POST /api/timeline', function() {
 		});
 	});
 
-
 	describe('with a start time after all the reports and a big limit', function() {
 
 		it('should do return all the authorized reports', function (done) {

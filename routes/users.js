@@ -148,12 +148,16 @@ function create(req, res, next) {
  */
 function retrieve(req, res, next) {
 
+	var reqUser = req.user;
+
 	// if we have got to this point we already have our user
 	// but we will reformat slightly rather than refetch as a lean
 	// object from the db
 	var user = {
-		id: req.user._id,
-		username: req.user.username
+		id: reqUser._id,
+		username: reqUser.username,
+		following: reqUser.following,
+		followers: reqUser.followers
 	};
 
 	// retrieve report count
