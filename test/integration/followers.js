@@ -148,6 +148,8 @@ describe('The followers API API', function() {
             res.body.length.should.be.equal(1);
             res.body[0].id.should.be.equal(friend1._id.toString());
             res.body[0].username.should.be.equal('friend1');
+            res.body[0].status.approved.should.be.equal(true);
+            res.body[0].status.blocked.should.be.equal(false);
             done();
           });
       });

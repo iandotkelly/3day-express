@@ -16,7 +16,6 @@ var User = require('../models/user');
 function retrieve(req, res, next) {
 
   var followers = req.user.toObject().followers || [];
-
   var active = [];
 
   // only copy active users
@@ -27,8 +26,8 @@ function retrieve(req, res, next) {
       active.push({
         id: follower.id,
         status: {
-          approved: follower.approved,
-          blocked: follower.blocked
+          approved: follower.status.approved,
+          blocked: follower.status.blocked
         }
       });
     }
