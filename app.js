@@ -78,7 +78,9 @@ app.get('/api/users', authenticate(), routes.users.retrieve);
 app.get('/api/following', authenticate(), routes.following.retrieve);
 app.post('/api/following/:username', authenticate(), routes.following.create);
 app.delete('/api/following/:id', authenticate(), routes.following.remove);
-
+// Followers
+app.get('/api/followers', authenticate(), routes.followers.retrieve);
+app.post('/api/followers/:id', authenticate(), routes.followers.update);
 // Reports
 app.post('/api/reports', authenticate(), routes.reports.create);
 app.get('/api/reports/:skip/:number', authenticate(), routes.reports.retrieve);

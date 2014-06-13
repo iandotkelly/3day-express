@@ -164,8 +164,6 @@ function retrieve(req, res, next) {
 	var user = {
 		id: reqUser._id,
 		username: reqUser.username,
-		following: reqUser.following,
-		followers: reqUser.followers,
 		autoApprove: reqUser.autoApprove
 	};
 
@@ -177,18 +175,7 @@ function retrieve(req, res, next) {
 		}
 
 		user.reportCount = count;
-
-		// retrieve follower names
-		User.addUsername(user.followers, function(err, list) {
-			if (err) {
-				return next(err);
-			}
-
-			user.followers = list;
-
-			res.send(httpStatus.OK, user);
-		});
-
+		res.send(httpStatus.OK, user);
 	});
 }
 
