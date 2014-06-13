@@ -17,20 +17,30 @@ function retrieve(req, res, next) {
 
   var followers = req.user.toObject().followers || [];
 
-  // strip out fields we do not need
+  var active = [];
+
+  // only copy active users
   for (var index = 0, len = followers.length; index < len; index++) {
     var follower = followers[index];
-    delete follower._id;
-    delete follower.status.active;
+
+    if (follower.status.active) {
+      active.push({
+        id: follower.id,
+        status: {
+          approved: follower.approved,
+          blocked: follower.blocked
+        }
+      });
+    }
   }
 
   // add usernames
-  User.addUsername(followers, function(err) {
+  User.addUsername(active, function(err) {
     if (err) {
       return next(err);
     }
 
-    return res.json(httpStatus.OK, followers);
+    return res.json(httpStatus.OK, active);
   });
 }
 

@@ -168,6 +168,38 @@ describe('The followers API API', function() {
       });
     });
 
+
+    describe('if the person following is not active', function() {
+
+      before(function(done) {
+        user.followers[0].status.active = false;
+        user.save(function (err) {
+          should(err).be.undefined;
+          done();
+        });
+      });
+
+      it('should return a 200', function(done) {
+        request(app)
+          .get('/api/followers')
+          .set('3day-app', 'test')
+          .auth('myuser', 'catsss')
+          .expect(200, done);
+      });
+
+      it('should not return the inactive user', function(done) {
+        request(app)
+          .get('/api/followers')
+          .set('3day-app', 'test')
+          .auth('myuser', 'catsss')
+          .end(function(err, res) {
+            should(err).be.not.an.object;
+            res.body.should.be.an.array;
+            res.body.length.should.be.equal(0);
+            done();
+          });
+      });
+    });
   });
 
   describe('POST /api/followers/:id', function() {
@@ -182,7 +214,6 @@ describe('The followers API API', function() {
           .expect(404, done);
       });
     });
-
 
     describe('with a bad ID', function() {
 
