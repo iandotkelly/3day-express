@@ -19,7 +19,7 @@ describe('POST /api/timeline', function() {
 
 	var user, fA, fB, bu;
 
-	var ru1, ru2, rA1, rA2, rB1, rB2, bu1, bu2;
+	var ru1, ru2, rA1, rA2, rB1, rB2, bu1, bu2, userReport;
 
 
 	before(function(done) {
@@ -85,6 +85,12 @@ describe('POST /api/timeline', function() {
 							throw err;
 						}
 
+						userReport = new Report({
+							userid: user._id,
+							date: new Date('Wed May 28 2014 15:01:00 GMT+0000'),
+							created: new Date('Wed May 28 2014 15:01:00 GMT-0400')
+						});
+
 						// user is on east coast
 						ru1 = new Report({
 							userid: user._id,
@@ -137,7 +143,8 @@ describe('POST /api/timeline', function() {
 							created: new Date('Wed May 28 2014 14:48:00 GMT-0400')
 						});
 
-						var reports = [ru1, ru2, rA1, rA2, rB1, rB2, bu1, bu2];
+
+						var reports = [ru1, ru2, rA1, rA2, rB1, rB2, bu1, bu2, userReport];
 
 						eachSeries(reports, function(report, cb) {
 							report.save(cb);
@@ -226,13 +233,14 @@ describe('POST /api/timeline', function() {
 				.end(function (err, res) {
 					should(err).not.be.an.object;
 					res.body.should.be.an.array;
-					res.body.length.should.be.equal(6);
+					res.body.length.should.be.equal(7);
 					res.body[0].userid.should.equal(fA._id.toString());
 					res.body[1].userid.should.equal(fA._id.toString());
 					res.body[2].userid.should.equal(user._id.toString());
 					res.body[3].userid.should.equal(user._id.toString());
-					res.body[4].userid.should.equal(fB._id.toString());
+					res.body[4].userid.should.equal(user._id.toString());
 					res.body[5].userid.should.equal(fB._id.toString());
+					res.body[6].userid.should.equal(fB._id.toString());
 					done();
 				});
 		});
@@ -279,6 +287,30 @@ describe('POST /api/timeline', function() {
 						results.length.should.be.equal(2);
 						(+ new Date(results[0].created)).should.be.equal(+rB2.created);
 						(+ new Date(results[1].created)).should.be.equal(+rB1.created);
+						done();
+					});
+			});
+		});
+
+
+		describe('except when it has a shortlist of myself', function() {
+
+			it('when it should only return shortlisted users reports', function (done) {
+
+				request(app)
+					// 10pm - well after all the reports - and ask for 100 of them
+					.post('/api/timeline/2014-05-28T22:00:00/100')
+					.set('3day-app', 'test')
+					.auth('iandotkelly', 'catsss')
+					.send([user._id.toString()])
+					.end(function (err, res) {
+						should(err).not.be.an.object;
+						res.body.should.be.an.array;
+						var results = res.body;
+						results.length.should.be.equal(3);
+						(+ new Date(results[0].created)).should.be.equal(+userReport.created);
+						(+ new Date(results[1].created)).should.be.equal(+ru2.created);
+						(+ new Date(results[2].created)).should.be.equal(+ru1.created);
 						done();
 					});
 			});

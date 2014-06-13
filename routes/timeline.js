@@ -72,6 +72,9 @@ function byPage(req, res, next) {
 	}
 
 	user.allAuthorized(shortList, function (err, followingIds) {
+		if (err) {
+			return next(err);
+		}
 
 		Report.find({
 			'userid': {

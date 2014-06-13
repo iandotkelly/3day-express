@@ -570,6 +570,7 @@ describe('User', function() {
 				});
 			});
 		});
+
 	});
 
 	describe('#allAuthorized', function () {
@@ -715,6 +716,19 @@ describe('User', function() {
 					ids.should.be.an.array;
 					ids.length.should.be.equal(1);
 					(ids[0].equals(followingA2._id)).should.be.true;
+					done();
+				});
+			});
+		});
+
+		describe('with a shortlist of myself', function () {
+
+			it('should return 1 approved', function (done) {
+				user.allAuthorized([user._id.toString()], function (err, ids) {
+					should(err).not.be.an.object;
+					ids.should.be.an.array;
+					ids.length.should.be.equal(1);
+					(ids[0].equals(user._id)).should.be.true;
 					done();
 				});
 			});

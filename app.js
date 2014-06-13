@@ -87,6 +87,7 @@ app.get('/api/reports', authenticate(), routes.reports.retrieve);
 app.delete('/api/reports/:id', authenticate(), routes.reports.remove);
 app.post('/api/reports/:id', authenticate(), routes.reports.update);
 // Report timeline
+app.post('/api/timeline', authenticate(), routes.timeline.bypage);
 app.post('/api/timeline/:time/:number', authenticate(), routes.timeline.bypage);
 app.post('/api/timeline/from/:timefrom/to/:timeto', authenticate(), routes.timeline.bytime);
 // Images

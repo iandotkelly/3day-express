@@ -384,7 +384,7 @@ userSchema.methods.allAuthorized = function (shortList, next) {
 
 		// if there is no shortlist, or if we are on the shortlist
 		// then we need to add ourselves to the list
-		if (!shortList || shortList.indexOf(ourId) >= 0) {
+		if (!shortList || shortList.indexOf(ourId.toString()) >= 0) {
 			foundIds.push(ourId);
 		}
 
