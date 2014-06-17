@@ -59,14 +59,17 @@ var userSchema = mongoose.Schema({
 		status: {
 			active: {
 				type: Boolean,
+				required: true,
 				default: true
 			},
 			approved: {
 				type: Boolean,
+				required: true,
 				default: true
 			},
 			blocked: {
 				type: Boolean,
+				required: true,
 				default: false
 			}
 		}
@@ -211,7 +214,6 @@ userSchema.methods.addFollowing = function (username, next) {
 	User.findOne({
 			username: username
 		},
-		'_id',
 		function (err, user) {
 
 			// error when finding user
@@ -412,7 +414,7 @@ userSchema.statics.addUsername = function (list, next) {
 				$in: ids
 			},
 		},
-		'_id, username',
+		'_id username',
 		function (err, users) {
 			if (err) {
 				return next(err);
