@@ -37,7 +37,7 @@ function byTime(req, res, next) {
 			},
 			'date': {
 				$gte: timeFrom,
-				$lte: timeTo
+				$lt: timeTo
 			}
 		})
 		.select('-__v -_id -updated')
@@ -81,7 +81,7 @@ function byPage(req, res, next) {
 				$in: followingIds
 			},
 			'created': {
-				$lte: new Date(time)
+				$lt: new Date(time)
 			}
 		})
 		.select('-__v -_id -updated')
