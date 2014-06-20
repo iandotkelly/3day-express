@@ -31,7 +31,7 @@ app.use(customHeader);
 app.use(passport.initialize());
 
 // middleware to parse json encoded body
-app.use(bodyParser());
+app.use(bodyParser.json());
 
 // development only error handler
 if (app.get('env') === 'development') {
