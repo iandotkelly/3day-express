@@ -1,0 +1,32 @@
+doctype
+
+// 3day
+// Copyright (C) Ian Kelly 2014
+
+html(lang="en")
+
+	head
+
+		meta(charset='utf8')
+		meta(name="viewport" content="width=device-width, initial-scale=1.0")
+
+		base(href='/')
+		title#hello 3DAY
+
+		//- huwa project stlesheet
+		//-link(rel='stylesheet', href='public/css/main.css')
+
+		block head
+
+	//- the body is the root element of the angular app
+	//- ng-cloak prevents rendering until the ugly {{}} will not appear
+	body(style, ng-app="3day", ng-cloak)
+
+		block body
+
+		//- bower installed components
+		//- angular itself
+		script(src='component/angular/angular.js')
+
+		//- our angular app files
+		script(src='app/js/app.js')

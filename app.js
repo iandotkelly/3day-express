@@ -5,24 +5,30 @@
 
 'use strict';
 
-var express = require('express'),
-	morgan = require('morgan'),
-	bodyParser = require('body-parser'),
-	errorHandler = require('errorhandler'),
-	routes = require('./routes'),
-	http = require('http'),
-	passport = require('passport'),
-	app = module.exports = express(),
-	customHeader = require('./lib/customheader-middleware'),
-	authenticate = require('./lib/authenticate'),
-	httpStatus = require('http-status'),
-	port = process.env['THREEDAY_PORT'] || 4000;
+var express = require('express');
+var morgan = require('morgan');
+var bodyParser = require('body-parser');
+var errorHandler = require('errorhandler');
+var routes = require('./routes');
+var http = require('http');
+var passport = require('passport');
+var app = module.exports = express();
+var customHeader = require('./lib/customheader-middleware');
+var authenticate = require('./lib/authenticate');
+var httpStatus = require('http-status');
+var port = process.env['THREEDAY_PORT'] || 4000;
+var path = require('path');
 
 // configure the application port
 app.set('port', port);
 
 // set up the logger
 app.use(morgan('dev'));
+
+// set the views to be in the views directory
+// and use Jade
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'jade');
 
 // custom middleware to discourage access from non approved clients
 app.use(customHeader);
@@ -96,6 +102,28 @@ app.post('/api/timeline/from/:timefrom/to/:timeto', authenticate(), routes.timel
 app.get('/api/image/:id', authenticate(), routes.images.retrieve);
 app.post('/api/image', authenticate(), routes.images.create);
 app.delete('/api/image/:id', authenticate(), routes.images.remove);
+
+/**
+ * Routes for the jade templates
+ */
+
+// serve index and view partials
+app.get('/', routes.gui.index);
+app.get('/partials/:name', routes.gui.partials);
+
+
+/**
+ * Statically served content
+ */
+
+// public resources such as css and images
+app.use('/public', express.static('public'));
+// bower components
+app.use('/component', express.static('bower_components'));
+// the angular app - will probably build and copy to public
+// at some point in the future
+app.use('/app', express.static('app'));
+
 
 /**
  * Start Server

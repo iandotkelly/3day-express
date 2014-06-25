@@ -1,0 +1,23 @@
+{
+  "name": "3day",
+  "version": "0.0.0",
+  "authors": [
+    "Ian Kelly <iandotkelly@gmail.com>"
+  ],
+  "description": "3-Day API and Web App",
+  "moduleType": [
+    "globals"
+  ],
+  "license": "Copyright(c) Ian Kelly",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "angular": "~1.2.18"
+  }
+}

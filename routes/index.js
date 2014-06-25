@@ -12,5 +12,6 @@ module.exports = {
 	images: require('./images'),
 	following: require('./following'),
 	followers: require('./followers'),
-	timeline: require('./timeline')
+	timeline: require('./timeline'),
+	gui: require('./gui')
 };
