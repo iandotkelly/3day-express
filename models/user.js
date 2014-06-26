@@ -9,6 +9,7 @@
 
 // db connection
 var db = require('../lib/db-connection');
+
 // bcrypt used to store password hashes
 var bcrypt = require('bcrypt');
 // id utilities
