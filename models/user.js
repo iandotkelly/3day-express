@@ -8,9 +8,7 @@
 'use strict';
 
 // db connection
-require('../lib/db-connection');
-// using mongoose ODM
-var mongoose = require('mongoose');
+var db = require('../lib/db-connection');
 // bcrypt used to store password hashes
 var bcrypt = require('bcrypt');
 // id utilities
@@ -33,7 +31,7 @@ passwordValidationError.errors = {
 	}
 };
 
-var userSchema = mongoose.Schema({
+var userSchema = db.Schema({
 	// the compulsory authentication fields
 	username: {
 		type: String,
@@ -52,7 +50,7 @@ var userSchema = mongoose.Schema({
 	// followers
 	followers: [{
 		id: {
-			type: mongoose.Schema.Types.ObjectId,
+			type: db.Schema.Types.ObjectId,
 			required: true
 		},
 		status: {
@@ -76,7 +74,7 @@ var userSchema = mongoose.Schema({
 	// following
 	following: [{
 		id: {
-			type: mongoose.Schema.Types.ObjectId,
+			type: db.Schema.Types.ObjectId,
 			required: true
 		}
 	}],
@@ -478,5 +476,5 @@ userSchema.pre('save', function (next) {
 });
 
 // we are exporting the mongoose model
-var User = mongoose.model('User', userSchema);
+var User = db.model('User', userSchema);
 module.exports = User;

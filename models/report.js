@@ -8,25 +8,42 @@
 'use strict';
 
 // db connection
-require('../lib/db-connection');
-// using mongoose ODM
-var mongoose = require('mongoose');
+var db = require('../lib/db-connection');
 
-var reportSchema = mongoose.Schema({
+var reportSchema = db.Schema({
 
-	userid: { type: mongoose.Schema.ObjectId, required: true },
-	date: { type: Date, default: Date.now },
+	userid: {
+		type: db.Schema.ObjectId,
+		required: true
+	},
+	date: {
+		type: Date,
+		default: Date.now
+	},
 	categories: [
 		{
-			type: { type: String, required: true },
-			checked: { type: Boolean, default: false },
-			message: { type: String }
+			type: {
+				type: String,
+				required: true
+			},
+			checked: {
+				type: Boolean,
+				default: false
+			},
+			message: {
+				type: String
+			}
 		}
 	],
 	images: [
 		{
-			id: { type: mongoose.Schema.ObjectId, required: true },
-			description: { type: String }
+			id: {
+				type: db.Schema.ObjectId,
+				required: true
+			},
+			description: {
+				type: String
+			}
 		}
 	],
 	// default created / updated
@@ -70,4 +87,4 @@ reportSchema.statics.removeImageByImageId = function (imageId, callback) {
 };
 
 // we are exporting the mongoose model
-module.exports = mongoose.model('Report', reportSchema);
+module.exports = db.model('Report', reportSchema);
