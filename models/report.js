@@ -7,14 +7,12 @@
 
 'use strict';
 
-	// using mongoose ODM
-var mongoose = require('mongoose'),
-	// the configuration file
-	config = require('../config'),
-	db,
-	reportSchema;
+// db connection
+var db = require('../lib/db-connection');
+// using mongoose ODM
+var mongoose = require('mongoose');
 
-reportSchema = mongoose.Schema({
+var reportSchema = mongoose.Schema({
 
 	userid: { type: mongoose.Schema.ObjectId, required: true },
 	date: { type: Date, default: Date.now },
@@ -70,10 +68,6 @@ reportSchema.statics.removeImageByImageId = function (imageId, callback) {
 	},
 	callback);
 };
-
-// connect to the database
-mongoose.connect(config.database);
-db = mongoose.connection;
 
 db.on('error', function (err) {
 	// @todo something more elegant than log to console

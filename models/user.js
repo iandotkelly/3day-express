@@ -7,6 +7,8 @@
 
 'use strict';
 
+// db connection
+var db = require('../lib/db-connection');
 // using mongoose ODM
 var mongoose = require('mongoose');
 // bcrypt used to store password hashes
@@ -14,8 +16,7 @@ var bcrypt = require('bcrypt');
 // id utilities
 var indexOfId = require('../lib/ids').indexOf;
 var listOfIds = require('../lib/ids').listOf;
-// the configuration file
-var config = require('../config');
+
 // constants
 var reasonCodes = require('../lib/constants').reasonCodes;
 // work factor for password encryption
@@ -444,11 +445,6 @@ userSchema.statics.addUsername = function (list, next) {
 userSchema.path('username').validate(function (value) {
 	return usernameValidation.test(value);
 }, reasonCodes.USERNAME_INVALID.toString());
-
-
-// connect to the database
-mongoose.connect(config.database);
-db = mongoose.connection;
 
 /**
 * Perform some pre-save implementation
