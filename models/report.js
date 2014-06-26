@@ -8,7 +8,7 @@
 'use strict';
 
 // db connection
-var db = require('../lib/db-connection');
+require('../lib/db-connection');
 // using mongoose ODM
 var mongoose = require('mongoose');
 
@@ -68,11 +68,6 @@ reportSchema.statics.removeImageByImageId = function (imageId, callback) {
 	},
 	callback);
 };
-
-db.on('error', function (err) {
-	// @todo something more elegant than log to console
-	console.log(err);
-});
 
 // we are exporting the mongoose model
 module.exports = mongoose.model('Report', reportSchema);

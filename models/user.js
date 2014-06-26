@@ -8,7 +8,7 @@
 'use strict';
 
 // db connection
-var db = require('../lib/db-connection');
+require('../lib/db-connection');
 // using mongoose ODM
 var mongoose = require('mongoose');
 // bcrypt used to store password hashes
@@ -21,8 +21,6 @@ var listOfIds = require('../lib/ids').listOf;
 var reasonCodes = require('../lib/constants').reasonCodes;
 // work factor for password encryption
 var SALT_WORK_FACTOR = 10;
-var db;
-var userSchema;
 var usernameValidation = /^[a-zA-Z0-9_-]{4,20}$/;
 var passwordValidation = /^[^\s]{6,20}$/;
 
@@ -477,12 +475,6 @@ userSchema.pre('save', function (next) {
 			next();
 		});
 	});
-});
-
-
-db.on('error', function (err) {
-	// @todo something more elegant than log to console
-	console.error(err);
 });
 
 // we are exporting the mongoose model
