@@ -9,6 +9,8 @@
 
 var huwa = angular.module('3day',
 	[
+		'ui.bootstrap',
+		'angularBasicAuth'
 	]);
 
 /**

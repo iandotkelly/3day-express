@@ -10,6 +10,9 @@ html(lang="en")
 		meta(charset='utf8')
 		meta(name="viewport" content="width=device-width, initial-scale=1.0")
 
+		//- twitter bootstrap css - used by angular-bootstrap component
+		link(href='component/bootswatch/darkly/bootstrap.min.css', rel='stylesheet')
+
 		base(href='/')
 		title#hello 3DAY
 
@@ -27,6 +30,15 @@ html(lang="en")
 		//- bower installed components
 		//- angular itself
 		script(src='component/angular/angular.js')
+		//- angular UI project - bootstrap
+		script(src='component/angular-bootstrap/ui-bootstrap-tpls.js')
+		//- angular local storage
+		script(src='component/angular-local-storage/angular-local-storage.min.js')
+		//- base64 encoding
+		script(src='component/angular-base64/angular-base64.min.js')
+
+		//- basic authentication
+		script(src='component/angular-basicauth/angular-basicauth.js')
 
 		//- our angular app files
 		script(src='app/js/app.js')
