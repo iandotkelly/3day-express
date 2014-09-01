@@ -20,7 +20,7 @@ function create(req, res, next) {
 		if (err) {
 			if (err.name === 'NotFound') {
 				// ok - so we don't know this person
-				return res.json(httpStatus.NOT_FOUND, {
+				return res.status(httpStatus.NOT_FOUND).json({
 					status: 'failed',
 					message: 'Not found'
 				});
@@ -31,7 +31,7 @@ function create(req, res, next) {
 		}
 
 		// ok, we're home and dry
-		res.json(httpStatus.OK, {
+		res.status(httpStatus.OK).json({
 			status: 'success',
 			message: 'friend added',
 			id: user._id
@@ -50,7 +50,7 @@ function retrieve(req, res, next) {
 		if (err) {
 			return next(err);
 		}
-		return res.json(httpStatus.OK, user.following);
+		return res.status(httpStatus.OK).json(user.following);
 	});
 }
 
@@ -64,7 +64,7 @@ function remove(req, res, next) {
 		id = new ObjectId(req.params.id);
 	} catch (err) {
 		// this isn't a valid ID
-		return res.json(httpStatus.BAD_REQUEST, {
+		return res.status(httpStatus.BAD_REQUEST).json({
 			status: 'failed',
 			message: 'Invalid ID format'
 		});
@@ -74,7 +74,7 @@ function remove(req, res, next) {
 		if (err) {
 			if (err.name === 'NotFollowing' || err.name === 'NotKnown') {
 				// ok - so we don't know this user
-				return res.json(httpStatus.NOT_FOUND, {
+				return res.status(httpStatus.NOT_FOUND).json({
 					status: 'failed',
 					message: 'Not found'
 				});
@@ -84,7 +84,7 @@ function remove(req, res, next) {
 			}
 		}
 
-		res.json(httpStatus.OK, {
+		res.status(httpStatus.OK).json({
 			status: 'success'
 		});
 	});

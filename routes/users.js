@@ -60,7 +60,7 @@ function update(req, res, next) {
 	// the update needs to have either an updated username
 	// or an updated password
 	if (!body || (!body.username && !body.password && !body.followers && !body.hasOwnProperty('autoApprove'))) {
-		return res.send(httpStatus.BAD_REQUEST, {
+		return res.status(httpStatus.BAD_REQUEST).json({
 			reason: reasonCodes.BAD_SYNTAX,
 			message: 'Bad request'
 		});
@@ -92,14 +92,14 @@ function update(req, res, next) {
 			// a bad request
 			saveError = processSaveError(err);
 			if (saveError) {
-				return res.send(httpStatus.BAD_REQUEST, saveError);
+				return res.status(httpStatus.BAD_REQUEST).json(saveError);
 			}
 
 			// ok - this is a genuine exception - return a 500
 			return next(err);
 
 		}
-		res.json(httpStatus.OK, {
+		res.status(httpStatus.OK).json({
 			message: 'Updated'
 		});
 	});
@@ -115,7 +115,7 @@ function create(req, res, next) {
 
 	// do we have the appropriate parameters?
 	if (!body || !body.username || !body.password) {
-		return res.send(httpStatus.BAD_REQUEST, {
+		return res.status(httpStatus.BAD_REQUEST).json({
 			reason: reasonCodes.BAD_SYNTAX,
 			message: 'Bad request'
 		});
@@ -136,14 +136,14 @@ function create(req, res, next) {
 			// a bad request
 			saveError = processSaveError(err);
 			if (saveError) {
-				return res.send(httpStatus.BAD_REQUEST, saveError);
+				return res.status(httpStatus.BAD_REQUEST).json(saveError);
 			}
 
 			// ok - this is a genuine exception - return a 500
 			return next(err);
 
 		} else {
-			res.send(httpStatus.CREATED, {
+			res.status(httpStatus.CREATED).json({
 				message: 'Created'
 			});
 		}
@@ -175,7 +175,7 @@ function retrieve(req, res, next) {
 		}
 
 		user.reportCount = count;
-		res.send(httpStatus.OK, user);
+		res.status(httpStatus.OK).send(user);
 	});
 }
 

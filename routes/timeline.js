@@ -48,7 +48,7 @@ function byTime(req, res, next) {
 				return next(err);
 			}
 
-			return res.json(httpStatus.OK, docs);
+			return res.status(httpStatus.OK).json(docs);
 		});
 	});
 }
@@ -92,7 +92,7 @@ function byPage(req, res, next) {
 				return next(err);
 			}
 
-			return res.json(httpStatus.OK, docs);
+			return res.status(httpStatus.OK).json(docs);
 		});
 	});
 }

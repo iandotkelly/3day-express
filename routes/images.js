@@ -69,7 +69,7 @@ function completeUpload(uploadState, res, next) {
 	// if no file was found - writestream will be falsy
 	// we can return at this point with an error response
 	if (!uploadState.writeStream) {
-		return res.json(httpStatus.BAD_REQUEST, {
+		return res.status(httpStatus.BAD_REQUEST).json({
 			status: 'failed',
 			reason: reasonCodes.NO_IMAGE_FOUND,
 			message: 'No image found'
@@ -80,7 +80,7 @@ function completeUpload(uploadState, res, next) {
 	if (!uploadState.reportId) {
 		deleteFileEventually(uploadState.gridfsFileId);
 		// we didn't even get a report id
-		return res.json(httpStatus.BAD_REQUEST, {
+		return res.status(httpStatus.BAD_REQUEST).json({
 			status: 'failed',
 			reason: reasonCodes.MISSING_REPORT_ID,
 			message: 'No report ID'
@@ -91,7 +91,7 @@ function completeUpload(uploadState, res, next) {
 	if (!uploadState.report) {
 		deleteFileEventually(uploadState.gridfsFileId);
 		// didn't find a report
-		return res.json(httpStatus.BAD_REQUEST, {
+		return res.status(httpStatus.BAD_REQUEST).json({
 			status: 'failed',
 			reason: reasonCodes.REPORT_NOT_FOUND,
 			message: 'Report not found'
@@ -110,7 +110,7 @@ function completeUpload(uploadState, res, next) {
 			return next(err);
 		}
 		// we're done
-		res.json(httpStatus.OK, {
+		res.status(httpStatus.OK).json({
 			status: 'ok',
 			id: uploadState.gridfsFileId
 		});
@@ -130,7 +130,7 @@ function create(req, res, next) {
 	// this request *must* be a multipart form - if we don't
 	// reject this, the busboy will time out
 	if (!contentType || contentType.indexOf(MULTIPART_HEADER) !== 0) {
-		return res.json(httpStatus.BAD_REQUEST, {
+		return res.status(httpStatus.BAD_REQUEST).json({
 			status: 'failed',
 			reason: reasonCodes.NOT_MULTIPART,
 			message: 'Not a multipart request'
@@ -258,7 +258,7 @@ function retrieve(req, res, next) {
 	try {
 		id = mongoose.Types.ObjectId(req.params.id);
 	} catch (err) {
-		return res.json(httpStatus.BAD_REQUEST, {
+		return res.status(httpStatus.BAD_REQUEST).json({
 			status: 'failed',
 			reasonCode: reasonCodes.BAD_ID,
 			message: 'Bad Request'
@@ -275,7 +275,7 @@ function retrieve(req, res, next) {
 
 		// if no file - then 404
 		if (!file) {
-			return res.json(httpStatus.NOT_FOUND, {
+			return res.status(httpStatus.NOT_FOUND).json({
 				status: 'failed',
 				message: 'Not found'
 			});
@@ -284,7 +284,7 @@ function retrieve(req, res, next) {
 		// if unauthorized
 		user.isAuthorized(file.metadata.user, function(err, authorized) {
 			if (!authorized) {
-				return res.json(httpStatus.UNAUTHORIZED, {
+				return res.status(httpStatus.UNAUTHORIZED).json({
 					status: 'failed',
 					message: 'Unauthorized'
 				});
@@ -317,7 +317,7 @@ function remove(req, res, next) {
 
 		if (file.userid !== user._id) {
 			// this file is not owned by the user
-			return res.json(httpStatus.UNAUTHORIZED, {
+			return res.status(httpStatus.UNAUTHORIZED).json({
 				status: 'failed',
 				message: 'Unauthorized'
 			});

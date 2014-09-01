@@ -27,7 +27,7 @@ function create(req, res, next) {
 		report;
 
 	if (!body || !body.date || !body.categories) {
-		return res.json(httpStatus.BAD_REQUEST, errorResponse);
+		return res.status(httpStatus.BAD_REQUEST).json(errorResponse);
 	}
 
 	report = new Report({
@@ -49,7 +49,7 @@ function create(req, res, next) {
 			}
 
 			// return a successful response
-			res.json(httpStatus.CREATED, {
+			res.status(httpStatus.CREATED).json({
 				message: 'Created'
 			});
 		});
@@ -78,7 +78,7 @@ function retrieve(req, res, next) {
 			if (err) {
 				return next(err);
 			}
-			res.json(httpStatus.OK, reports);
+			res.status(httpStatus.OK).json(reports);
 		});
 }
 
@@ -92,7 +92,7 @@ function update(req, res, next) {
 		body = req.body;
 
 	if (!body || !body.date || !body.categories) {
-		return res.json(httpStatus.BAD_REQUEST, errorResponse);
+		return res.status(httpStatus.BAD_REQUEST).json(errorResponse);
 	}
 
 	Report.findByIdAndUpdate(id, body, function (err, report) {
@@ -107,13 +107,13 @@ function update(req, res, next) {
 					return next(err);
 				}
 
-				res.json(httpStatus.OK, {
+				res.status(httpStatus.OK).send({
 					message: 'Updated'
 				});
 			});
 
 		}
-		res.json(httpStatus.NOT_FOUND, {
+		res.status(httpStatus.NOT_FOUND).json({
 			message: 'Not Found'
 		});
 	});
@@ -131,11 +131,11 @@ function remove(req, res, next) {
 			return next(err);
 		}
 		if (report) {
-			return res.json(httpStatus.OK, {
+			return res.status(httpStatus.OK).json({
 				message: 'Deleted'
 			});
 		}
-		res.json(httpStatus.NOT_FOUND, {
+		res.status(httpStatus.NOT_FOUND).json({
 			message: 'Not Found'
 		});
 	});

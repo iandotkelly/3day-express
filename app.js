@@ -66,7 +66,7 @@ app.post('/api/users', function (req, res, next) {
 			// need to handle the 401 response explicitly
 			// not just leave this to passport.js to do
 			res.setHeader('www-authenticate', 'Basic realm="api"');
-			res.send(httpStatus.UNAUTHORIZED);
+			res.status(httpStatus.UNAUTHORIZED).end();
 		})(req, res, next);
 	}
 

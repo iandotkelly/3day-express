@@ -39,7 +39,7 @@ function retrieve(req, res, next) {
       return next(err);
     }
 
-    return res.json(httpStatus.OK, active);
+    return res.status(httpStatus.OK).json(active);
   });
 }
 
@@ -57,14 +57,14 @@ function update(req, res, next) {
   try {
     id = new ObjectId(id);
   } catch (err) {
-    return res.json(httpStatus.BAD_REQUEST, {
+    return res.status(httpStatus.BAD_REQUEST).json({
       status: 'failed',
       message: 'not a user id'
     });
   }
 
   if (typeof approved !== 'boolean' && typeof blocked !== 'boolean') {
-    return res.json(httpStatus.BAD_REQUEST, {
+    return res.status(httpStatus.BAD_REQUEST).json({
       status: 'failed',
       message: 'no data included'
     });
@@ -81,7 +81,7 @@ function update(req, res, next) {
   }
 
   if (!found) {
-    return res.json(httpStatus.BAD_REQUEST, {
+    return res.status(httpStatus.BAD_REQUEST).json({
       status: 'failed',
       message: 'not following user ' + id.toString()
     });
@@ -100,7 +100,7 @@ function update(req, res, next) {
       return next(err);
     }
 
-    return res.json(httpStatus.OK, {
+    return res.status(httpStatus.OK).json({
       status: 'success',
       message: 'follower status updated'
     });
