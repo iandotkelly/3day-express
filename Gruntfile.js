@@ -16,6 +16,14 @@ module.exports = function (grunt) {
 	// Project configuration.
 	grunt.initConfig({
 
+		license_finder: {
+			all: {
+				options: {
+					production: true
+				}
+			}
+		},
+
 		jshint: {
 			// general jshint settings
 			all: {
@@ -68,9 +76,12 @@ module.exports = function (grunt) {
 	// load the plugins required
 	grunt.loadNpmTasks('grunt-contrib-jshint');
 	grunt.loadNpmTasks('grunt-mocha-test');
+	grunt.loadNpmTasks('grunt-license-finder');
 
 	grunt.registerTask('test', ['mochaTest']);
 	grunt.registerTask('lint', ['jshint']);
+	grunt.registerTask('license', ['license_finder']);
+
 	grunt.registerTask('default', ['lint', 'test']);
 
 };
