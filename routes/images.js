@@ -165,7 +165,7 @@ function create(req, res, next) {
 			}
 		};
 
-		config['content_type'] = mimetype;
+		config.content_type = mimetype;
 
 		// stream the file to mongodb
 		uploadState.writeStream = gfs.createWriteStream(config);

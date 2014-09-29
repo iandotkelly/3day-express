@@ -95,6 +95,9 @@ var userSchema = db.Schema({
 	}
 });
 
+// we are exporting the mongoose model
+var User = db.model('User', userSchema);
+
 /**
 * Compares a password
 *
@@ -476,6 +479,4 @@ userSchema.pre('save', function (next) {
 	});
 });
 
-// we are exporting the mongoose model
-var User = db.model('User', userSchema);
 module.exports = User;

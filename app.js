@@ -16,7 +16,7 @@ var app = module.exports = express();
 var customHeader = require('./lib/customheader-middleware');
 var authenticate = require('./lib/authenticate');
 var httpStatus = require('http-status');
-var port = process.env['THREEDAY_PORT'] || 4000;
+var port = process.env.THREEDAY_PORT || 4000;
 var path = require('path');
 
 // configure the application port
