@@ -50,6 +50,27 @@ module.exports = function (grunt) {
 			}
 		},
 
+		// less pre-processor
+		less: {
+			development: {
+				options: {
+					paths: ['styles`']
+				},
+				files: {
+					'public/css/main.css': 'styles/main.less'
+				}
+			},
+			production: {
+				options: {
+					paths: ['styles'],
+					yuicompress: true
+				},
+				files: {
+					'public/css/main.css': 'styles/main.less'
+				}
+			}
+		},
+
 		// Configure a mochaTest task
 		mochaTest: {
 			test: {
@@ -77,11 +98,12 @@ module.exports = function (grunt) {
 	grunt.loadNpmTasks('grunt-contrib-jshint');
 	grunt.loadNpmTasks('grunt-mocha-test');
 	grunt.loadNpmTasks('grunt-license-finder');
+	grunt.loadNpmTasks('grunt-contrib-less');
 
 	grunt.registerTask('test', ['mochaTest']);
 	grunt.registerTask('lint', ['jshint']);
 	grunt.registerTask('license', ['license_finder']);
 
-	grunt.registerTask('default', ['lint', 'test']);
+	grunt.registerTask('default', ['lint', 'less', 'test']);
 
 };
