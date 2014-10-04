@@ -16,6 +16,9 @@ var bcrypt = require('bcrypt');
 var indexOfId = require('../lib/ids').indexOf;
 var listOfIds = require('../lib/ids').listOf;
 
+// the user model itself
+var User;
+
 // constants
 var reasonCodes = require('../lib/constants').reasonCodes;
 // work factor for password encryption
@@ -94,9 +97,6 @@ var userSchema = db.Schema({
 		default: Date.now
 	}
 });
-
-// we are exporting the mongoose model
-var User = db.model('User', userSchema);
 
 /**
 * Compares a password
@@ -479,4 +479,4 @@ userSchema.pre('save', function (next) {
 	});
 });
 
-module.exports = User;
+module.exports = User = db.model('User', userSchema);
