@@ -1,9 +1,18 @@
 .container
-  form
-    label(for="username") Username
-    input#username(type="text")
+  form(
+      ng-controller='LoginCtrl'
+      ng-submit='login()'
+    )
+      label(for="username") Username
+      input#username(
+        type="text"
+        ng-model="username"
+      )
 
-    label(for="password") Password
-    input#password(type="password")
+      label(for="password") Password
+      input#password(
+        type="password"
+        ng-model="password"
+      )
 
-    button(type="submit") Login
+      button(type="submit") Login

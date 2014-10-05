@@ -18,12 +18,13 @@
     "tests"
   ],
   "dependencies": {
-    "angular": "1.2.25",
-    "angular-basicauth": "~0.2.1",
+    "angular": "1.2.26",
+    "angular-basicauth": "0.3.0",
     "angular-bootstrap": "0.11.2",
     "angular-ui-router": "~0.2.11"
   },
   "resolutions": {
-    "angular": "1.2.25"
+    "angular-basicauth": "0.3.0",
+    "angular-local-storage": "0.1.0"
   }
 }

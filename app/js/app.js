@@ -7,7 +7,7 @@
 'use strict';
 
 
-var huwa = angular.module('3day',
+var threeday = angular.module('3day',
 	[
 		'ui.bootstrap',
 		'angularBasicAuth',
@@ -19,21 +19,21 @@ var huwa = angular.module('3day',
  *
  * Responsible for the overall applicaton
  */
-huwa.controller('MainCtrl',
+threeday.controller('MainCtrl',
 	[
 		'$scope',
 		'$log',
-		function ($scope, $log) {
-			$log.log($scope);
+		'authService',
+		function ($scope, $log, authService) {
+			// add the 3day secret header
+			authService.headers['3day-app'] = 'web app';
 		}
 	]);
-
-
 
 /**
  * The states of the application
  */
-huwa.config(
+threeday.config(
 	[
 		'$stateProvider',
 		'$urlRouterProvider',

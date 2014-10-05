@@ -25,8 +25,8 @@ module.exports = function (grunt) {
 		},
 
 		jshint: {
-			// general jshint settings
-			all: {
+			// server code jshint settings
+			server: {
 				options: {
 					jshintrc: '.jshintrc'
 				},
@@ -36,6 +36,15 @@ module.exports = function (grunt) {
 					'models/**/*.js',
 					'routes/**/*.js',
 					'lib/**/*.js'
+				]
+			},
+			// settings for client side angular code
+			angular: {
+				options: {
+					jshintrc: 'app/js/.jshintrc'
+				},
+				src: [
+					'app/js/**/*.js'
 				]
 			},
 			// settings for tests - not much different
