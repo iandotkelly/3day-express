@@ -11,7 +11,8 @@ var threeday = angular.module('3day',
 	[
 		'ui.bootstrap',
 		'angularBasicAuth',
-		'ui.router'
+		'ui.router',
+		'infinite-scroll'
 	]);
 
 /**
@@ -56,6 +57,10 @@ threeday.config(
 				.state('login', {
 					url: '/login',
 					templateUrl: '/partials/login'
+				})
+				.state('timeline', {
+					url: '/timeline',
+					templateUrl: '/partials/timeline'
 				})
 				.state('about', {
 					utl: '/about',

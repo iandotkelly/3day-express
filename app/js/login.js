@@ -14,13 +14,23 @@ threeday.controller('LoginCtrl',
 		'$scope',
 		'$log',
 		'authService',
-		function ($scope, $log, authService) {
+		'$state',
+		function ($scope, $log, authService, $state) {
 			$log.log('login controller');
 			$log.log($scope);
 
+			$scope.error = false;
+
 			$scope.login = function() {
-				$log.log('Attempt to login');
-				authService.login($scope.username, $scope.password);
+
+				authService
+					.login($scope.username, $scope.password)
+					.success(function() {
+						$state.go('timeline');
+					})
+					.error(function() {
+						$scope.error = true;
+					});
 			};
 		}
 	]);

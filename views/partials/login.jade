@@ -1,18 +1,31 @@
 .container
-  form(
-      ng-controller='LoginCtrl'
-      ng-submit='login()'
-    )
-      label(for="username") Username
-      input#username(
-        type="text"
-        ng-model="username"
-      )
 
-      label(for="password") Password
-      input#password(
-        type="password"
-        ng-model="password"
-      )
+  div(style='max-width:320px')
+    h3 Please Log In, or Sign Up
+    .row
+      .col-xs-6.col-sm-6.col-md-6
+        a.btn.btn-la.btn-primary.btn-block(href='#') Facebook
+      .col-xs-6.col-sm-6.col-md-6
+        a.btn.btn-la.btn-info.btn-block(href='#') Google
+    .login-or
+      .hr-or
+      span.span-or or
 
-      button(type="submit") Login
+    form(ng-controller='LoginCtrl'
+      ng-submit='login()')
+
+        label(for='username') Username
+        input#username.form-control(type='text'
+          ng-model='username')
+
+        label(for='password') Password
+        input#password.form-control(type='password'
+          ng-model='password')
+
+        div.checkbox.pull-right
+          input#remember(type='checkbox')
+          label(for='remember') Remember me
+
+        .error(ng-show='error') Unknown username or password
+
+        button.btn.btn-primary(type='submit') Login
