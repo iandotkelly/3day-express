@@ -64,8 +64,6 @@ app.post('/api/users', function (req, res, next) {
 				return routes.users.update(req, res, next);
 			}
 			// need to handle the 401 response explicitly
-			// not just leave this to passport.js to do
-			res.setHeader('www-authenticate', 'Basic realm="api"');
 			res.status(httpStatus.UNAUTHORIZED).end();
 		})(req, res, next);
 	}
@@ -79,29 +77,29 @@ app.post('/api/users', function (req, res, next) {
  */
 
 // Users
-app.get('/api/users', authenticate(), routes.users.retrieve);
+app.get('/api/users', authenticate, routes.users.retrieve);
 // Following
-app.get('/api/following', authenticate(), routes.following.retrieve);
-app.post('/api/following/:username', authenticate(), routes.following.create);
-app.delete('/api/following/:id', authenticate(), routes.following.remove);
+app.get('/api/following', authenticate, routes.following.retrieve);
+app.post('/api/following/:username', authenticate, routes.following.create);
+app.delete('/api/following/:id', authenticate, routes.following.remove);
 // Followers
-app.get('/api/followers', authenticate(), routes.followers.retrieve);
-app.post('/api/followers/:id', authenticate(), routes.followers.update);
+app.get('/api/followers', authenticate, routes.followers.retrieve);
+app.post('/api/followers/:id', authenticate, routes.followers.update);
 // Reports
-app.post('/api/reports', authenticate(), routes.reports.create);
-app.get('/api/reports/:skip/:number', authenticate(), routes.reports.retrieve);
-app.get('/api/reports/:number', authenticate(), routes.reports.retrieve);
-app.get('/api/reports', authenticate(), routes.reports.retrieve);
-app.delete('/api/reports/:id', authenticate(), routes.reports.remove);
-app.post('/api/reports/:id', authenticate(), routes.reports.update);
+app.post('/api/reports', authenticate, routes.reports.create);
+app.get('/api/reports/:skip/:number', authenticate, routes.reports.retrieve);
+app.get('/api/reports/:number', authenticate, routes.reports.retrieve);
+app.get('/api/reports', authenticate, routes.reports.retrieve);
+app.delete('/api/reports/:id', authenticate, routes.reports.remove);
+app.post('/api/reports/:id', authenticate, routes.reports.update);
 // Report timeline
-app.post('/api/timeline', authenticate(), routes.timeline.bypage);
-app.post('/api/timeline/:time/:number', authenticate(), routes.timeline.bypage);
-app.post('/api/timeline/from/:timefrom/to/:timeto', authenticate(), routes.timeline.bytime);
+app.post('/api/timeline', authenticate, routes.timeline.bypage);
+app.post('/api/timeline/:time/:number', authenticate, routes.timeline.bypage);
+app.post('/api/timeline/from/:timefrom/to/:timeto', authenticate, routes.timeline.bytime);
 // Images
-app.get('/api/image/:id', authenticate(), routes.images.retrieve);
-app.post('/api/image', authenticate(), routes.images.create);
-app.delete('/api/image/:id', authenticate(), routes.images.remove);
+app.get('/api/image/:id', authenticate, routes.images.retrieve);
+app.post('/api/image', authenticate, routes.images.create);
+app.delete('/api/image/:id', authenticate, routes.images.remove);
 
 /**
  * Routes for the jade templates

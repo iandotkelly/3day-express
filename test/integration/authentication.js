@@ -22,18 +22,6 @@ describe('With incorrect username and password', function () {
 				.expect(401, done);
 		});
 
-		it('should issue an authentication challenge', function (done) {
-			request(app)
-				.get('/api/users')
-				.set('3day-app', 'test')
-				.auth('incorrect', 'credentials')
-				.end(function (err, response) {
-					should(err).not.exit;
-					var header = response.header['www-authenticate'];
-					header.should.be.equal('Basic realm="api"');
-					done();
-				});
-		});
 	});
 
 });
@@ -80,19 +68,6 @@ describe('With incorrect password', function () {
 				.expect(401, done);
 		});
 
-
-		it('should issue an authentication challenge', function (done) {
-			request(app)
-				.get('/api/users')
-				.set('3day-app', 'test')
-				.auth('incorrect', 'credentials')
-				.end(function (err, response) {
-					should(err).not.exit;
-					var header = response.header['www-authenticate'];
-					header.should.be.equal('Basic realm="api"');
-					done();
-				});
-		});
 	});
 });
 

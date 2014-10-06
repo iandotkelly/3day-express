@@ -317,7 +317,7 @@ describe('POST /api/users', function () {
 					.expect(401, done);
 			});
 
-			it('should return a response with WWW-Authenticate header', function (done) {
+			it('should not return a response with WWW-Authenticate header', function (done) {
 				request(app)
 					.post('/api/users')
 					.auth('updateuser', 'catzss')
@@ -326,8 +326,7 @@ describe('POST /api/users', function () {
 					.end(function (err, res) {
 						should(err).not.exist;
 						var header = res.headers['www-authenticate'];
-						header.should.be.a.string;
-						header.should.be.equal('Basic realm="api"');
+						should(header).be.undefined;
 						done();
 					});
 			});

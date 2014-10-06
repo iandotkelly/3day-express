@@ -24,9 +24,15 @@ threeday.controller('MainCtrl',
 		'$scope',
 		'$log',
 		'authService',
-		function ($scope, $log, authService) {
-			// add the 3day secret header
+		'authDefaults',
+		function ($scope, $log, authService, authDefaults) {
+
+			// condfigure the auth service
+			authDefaults.authenticateUrl = '/api/users';
 			authService.headers['3day-app'] = 'web app';
+
+
+
 		}
 	]);
 
