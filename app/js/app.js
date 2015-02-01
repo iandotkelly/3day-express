@@ -26,14 +26,16 @@ threeday.controller('MainCtrl',
 		'$log',
 		'authService',
 		'authDefaults',
-		function ($scope, $log, authService, authDefaults) {
+		'timeline',
+		function ($scope, $log, authService, authDefaults, timeline) {
 
-			// condfigure the auth service
+			// configure the auth service
 			authDefaults.authenticateUrl = '/api/users';
 			authService.headers['3day-app'] = 'web app';
 
-
-
+			// do something with the timeline
+			$log.log(timeline);
+			timeline.doSomething();
 		}
 	]);
 
