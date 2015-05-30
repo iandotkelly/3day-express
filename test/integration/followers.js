@@ -176,7 +176,7 @@ describe('The followers API API', function() {
       before(function(done) {
         user.followers[0].status.active = false;
         user.save(function (err) {
-          should(err).be.undefined;
+          should(err).be.null;
           done();
         });
       });
@@ -275,7 +275,7 @@ describe('The followers API API', function() {
             .auth('myuser', 'catsss')
             .send({approved:false})
             .end(function(err, response) {
-              should(err).be.undefined;
+              should(err).be.null;
               response.status.should.be.equal(200);
               response.body.status.should.be.equal('success');
               User.findOne({username: 'myuser'}, function (err, ua) {
@@ -300,7 +300,7 @@ describe('The followers API API', function() {
             .auth('myuser', 'catsss')
             .send({blocked:true})
             .end(function(err, response) {
-              should(err).be.undefined;
+              should(err).be.null;
               response.status.should.be.equal(200);
               response.body.status.should.be.equal('success');
               User.findOne({username: 'myuser'}, function (err, ua) {
@@ -326,7 +326,7 @@ describe('The followers API API', function() {
             .auth('myuser', 'catsss')
             .send({blocked:false, approved:true})
             .end(function(err, response) {
-              should(err).be.undefined;
+              should(err).be.null;
               response.status.should.be.equal(200);
               response.body.status.should.be.equal('success');
               User.findOne({username: 'myuser'}, function (err, ua) {

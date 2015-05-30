@@ -128,15 +128,15 @@ userSchema.methods.setLatest = function (next) {
 	// the property in the document
 	this.update({
 		latest: now
-	}, function (err, numberAffected) {
+	}, function (err, results) {
 		if (err) {
 			return next(err);
 		}
 
-		if (numberAffected !== 1) {
+		if (results.nModified !== 1) {
 			return next(
 				new Error('Unexpected number of affected records: ' +
-					numberAffected)
+					results.nModified)
 			);
 		}
 		next();
